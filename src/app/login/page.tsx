@@ -3,7 +3,7 @@
 import { login, signup } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ShieldAlert, User, Lock, Compass, CheckCircle2 } from "lucide-react";
+import { ShieldAlert, User, Lock, Compass } from "lucide-react";
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 

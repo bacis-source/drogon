@@ -1,4 +1,5 @@
-import { streamText, generateObject, embed, embedMany } from 'ai'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { streamText, generateObject, embed } from 'ai'
 import { openai } from '@ai-sdk/openai'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
@@ -137,7 +138,7 @@ export async function POST(req: Request) {
 
   let contextualPrompt = DROGON_SYSTEM_PROMPT
   if (relatedContexts && relatedContexts.length > 0) {
-      contextualPrompt += `\n\n### RAG Memory Context:\n${relatedContexts.map((c: any) => c.content).join('\n---\n')}`
+      contextualPrompt += `\n\n### RAG Memory Context:\n${relatedContexts.map((c: { content: string }) => c.content).join('\n---\n')}`
   }
 
   const result = await streamText({
