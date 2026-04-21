@@ -18,12 +18,6 @@ function LoginContent() {
     <div className="min-h-screen bg-[#060913] text-slate-200 flex items-center justify-center p-4">
       <div className="w-full max-w-[440px] bg-[#0E1320] rounded-[2.5rem] border border-slate-800/40 p-10 pb-8 shadow-2xl relative">
         
-        {/* Top Right Cloud Active Pill */}
-        <div className="absolute top-8 right-8 px-3 py-1 bg-[#06241E] rounded-full border border-emerald-900/50 flex items-center gap-1.5">
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-          <span className="text-[10px] font-bold tracking-wider text-emerald-400">CLOUD ACTIVE</span>
-        </div>
-
         {/* Drogon Header */}
         <div className="text-center mt-10 mb-10 flex flex-col items-center gap-4">
           <div className="w-16 h-16 rounded-[1.2rem] bg-[#F59E0B] flex items-center justify-center shadow-[0_0_20px_rgba(245,158,11,0.2)]">
@@ -100,14 +94,10 @@ function LoginContent() {
         </form>
 
         {/* Footer info matching screenshot */}
-        <div className="mt-8 pt-6 border-t border-slate-800/60 flex justify-between items-center text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+        <div className="mt-8 pt-6 border-t border-slate-800/60 flex justify-center items-center text-[10px] font-bold text-slate-500 uppercase tracking-widest">
             <div className="flex items-center gap-2">
-                <ShieldAlert className="w-3.5 h-3.5 opacity-60" /> {/* Substitute standard tick lock if needed, shield works for end-to-end safe */}
+                <ShieldAlert className="w-3.5 h-3.5 opacity-60" />
                 END-TO-END SAFE
-            </div>
-            <div className="flex items-center gap-2 text-[#F59E0B]/80">
-                CLOUD KONFIGURERET
-                <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
             </div>
         </div>
       </div>
