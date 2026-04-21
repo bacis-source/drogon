@@ -1,81 +1,124 @@
-import { login, signup } from './actions'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { ShieldAlert } from 'lucide-react'
+"use client";
 
-export default async function LoginPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ error?: string }>
-}) {
-  const params = await searchParams;
+import { login, signup } from "./actions";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ShieldAlert, User, Lock, Compass, CheckCircle2 } from "lucide-react";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
+
+function LoginContent() {
+  const searchParams = useSearchParams();
+  const error = searchParams.get("error");
+  
+  // Custom switch logic based on user's target UI workflow
+  const [isSignUp, setIsSignUp] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#0B0F19] text-slate-200 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-[#101625] rounded-3xl border border-cyan-900/30 p-8 shadow-[0_0_40px_rgba(34,211,238,0.05)]">
-        <div className="text-center mb-8 flex flex-col items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-cyan-900/20 flex items-center justify-center border border-cyan-800/30 shadow-[0_0_15px_rgba(34,211,238,0.2)]">
-             <div className="w-4 h-4 rounded-full bg-cyan-400 animate-pulse" />
+    <div className="min-h-screen bg-[#060913] text-slate-200 flex items-center justify-center p-4">
+      <div className="w-full max-w-[440px] bg-[#0E1320] rounded-[2.5rem] border border-slate-800/40 p-10 pb-8 shadow-2xl relative">
+        
+        {/* Top Right Cloud Active Pill */}
+        <div className="absolute top-8 right-8 px-3 py-1 bg-[#06241E] rounded-full border border-emerald-900/50 flex items-center gap-1.5">
+          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+          <span className="text-[10px] font-bold tracking-wider text-emerald-400">CLOUD ACTIVE</span>
+        </div>
+
+        {/* Drogon Header */}
+        <div className="text-center mt-10 mb-10 flex flex-col items-center gap-4">
+          <div className="w-16 h-16 rounded-[1.2rem] bg-[#F59E0B] flex items-center justify-center shadow-[0_0_20px_rgba(245,158,11,0.2)]">
+             <Compass className="w-8 h-8 text-[#060913]" fill="#060913" stroke="white" strokeWidth={1} />
           </div>
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-cyan-50">Secure Access</h1>
-            <p className="text-sm text-cyan-600/70 py-1 font-mono">DROGON . MASTER ARCHITECT</p>
+            <h1 className="text-4xl font-extrabold tracking-tight text-white mb-1">DROGON</h1>
+            <p className="text-[11px] font-bold tracking-[0.2em] text-[#F59E0B]">
+              MASTER ARCHITECT OS
+            </p>
           </div>
         </div>
 
-        {params?.error && (
+        {error && (
           <div className="mb-6 p-4 rounded-xl bg-red-900/20 border border-red-900/50 flex items-center gap-3 text-red-400 text-sm">
              <ShieldAlert className="w-4 h-4" />
-             {params.error}
+             {error}
           </div>
         )}
 
         <form className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-xs font-semibold uppercase tracking-wider text-cyan-500/70" htmlFor="email">
-              Email Protocol
-            </label>
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500 group-focus-within:text-[#F59E0B] transition-colors">
+              <User className="h-5 w-5" />
+            </div>
             <Input 
               id="email" 
               name="email" 
               type="email" 
-              placeholder="operator@antigravity.sys"
-              className="bg-[#0B0F19] border-cyan-900/40 focus-visible:ring-cyan-500/50 text-cyan-50 placeholder:text-slate-600"
+              placeholder="Brugernavn"
+              className="bg-[#050810] border-0 focus-visible:ring-1 focus-visible:ring-[#F59E0B]/50 text-white placeholder:text-slate-500 h-14 pl-12 rounded-xl text-base shadow-inner"
               required 
             />
           </div>
           
-          <div className="space-y-2">
-            <label className="text-xs font-semibold uppercase tracking-wider text-cyan-500/70" htmlFor="password">
-              Clearance Key
-            </label>
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500 group-focus-within:text-[#F59E0B] transition-colors">
+              <Lock className="h-5 w-5" />
+            </div>
             <Input 
               id="password" 
               name="password" 
               type="password" 
-              placeholder="••••••••"
-              className="bg-[#0B0F19] border-cyan-900/40 focus-visible:ring-cyan-500/50 text-cyan-50 placeholder:text-slate-600"
+              placeholder="Adgangskode"
+              className="bg-[#050810] border-0 focus-visible:ring-1 focus-visible:ring-[#F59E0B]/50 text-white placeholder:text-slate-500 h-14 pl-12 rounded-xl text-base shadow-inner"
               required 
             />
           </div>
 
-          <div className="pt-6 grid grid-cols-2 gap-4">
-            <Button 
-              formAction={login}
-              className="w-full bg-cyan-600 hover:bg-cyan-500 text-[#0B0F19] font-medium shadow-[0_0_15px_rgba(34,211,238,0.2)] transition-all"
+          <div className="flex justify-end pt-1 pb-4">
+            <a href="#" className="text-xs font-semibold text-slate-500 hover:text-slate-400 transition-colors uppercase tracking-wider">
+              Glemt adgangskode?
+            </a>
+          </div>
+
+          <Button 
+            key={isSignUp ? "signup" : "login"}
+            formAction={isSignUp ? signup : login}
+            className="w-full bg-[#F59E0B] hover:bg-[#EAB308] text-[#050810] font-bold text-base h-14 rounded-xl shadow-[0_0_15px_rgba(245,158,11,0.2)] transition-all flex items-center justify-center gap-2"
+          >
+            {isSignUp ? "Opret Konto" : "Start Session"} 
+            <span className="text-xl leading-none -mt-1 hover:translate-x-1 duration-200">→</span>
+          </Button>
+          
+          <div className="text-center pt-6 pb-4">
+            <button 
+              type="button" 
+              onClick={() => setIsSignUp(!isSignUp)}
+              className="text-xs font-semibold text-slate-400 hover:text-[#F59E0B] transition-colors uppercase tracking-wider"
             >
-              Authenticate
-            </Button>
-            <Button 
-              formAction={signup} 
-              variant="outline"
-              className="w-full border-cyan-800/50 text-cyan-400 hover:bg-cyan-900/20 hover:text-cyan-300 transition-all font-medium"
-            >
-              Initialize Node
-            </Button>
+              {isSignUp ? "allerede visionær? log ind her" : "ny visionær? opret en konto her"}
+            </button>
           </div>
         </form>
+
+        {/* Footer info matching screenshot */}
+        <div className="mt-8 pt-6 border-t border-slate-800/60 flex justify-between items-center text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+            <div className="flex items-center gap-2">
+                <ShieldAlert className="w-3.5 h-3.5 opacity-60" /> {/* Substitute standard tick lock if needed, shield works for end-to-end safe */}
+                END-TO-END SAFE
+            </div>
+            <div className="flex items-center gap-2 text-[#F59E0B]/80">
+                CLOUD KONFIGURERET
+                <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </div>
+        </div>
       </div>
     </div>
-  )
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#060913] flex items-center justify-center"><div className="w-8 h-8 rounded-full border-2 border-[#F59E0B] border-t-transparent animate-spin" /></div>}>
+      <LoginContent />
+    </Suspense>
+  );
 }
