@@ -38,7 +38,7 @@ function LoginContent() {
           </div>
         )}
 
-        <form className="space-y-4">
+        <form action={isSignUp ? signup : login} className="space-y-4">
           <div className="relative group">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500 group-focus-within:text-[#F59E0B] transition-colors">
               <User className="h-5 w-5" />
@@ -76,7 +76,6 @@ function LoginContent() {
           <Button 
             key={isSignUp ? "signup" : "login"}
             type="submit"
-            formAction={isSignUp ? signup : login}
             className="w-full bg-[#F59E0B] hover:bg-[#EAB308] text-[#050810] font-bold text-base h-14 rounded-xl shadow-[0_0_15px_rgba(245,158,11,0.2)] transition-all flex items-center justify-center gap-2"
           >
             {isSignUp ? "Opret Konto" : "Start Session"} 
