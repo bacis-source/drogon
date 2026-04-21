@@ -75,6 +75,7 @@ function LoginContent() {
 
           <Button 
             key={isSignUp ? "signup" : "login"}
+            type="submit"
             formAction={isSignUp ? signup : login}
             className="w-full bg-[#F59E0B] hover:bg-[#EAB308] text-[#050810] font-bold text-base h-14 rounded-xl shadow-[0_0_15px_rgba(245,158,11,0.2)] transition-all flex items-center justify-center gap-2"
           >
