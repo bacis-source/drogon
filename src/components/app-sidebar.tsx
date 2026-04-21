@@ -13,8 +13,11 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar"
 import { Compass, FileText, LayoutTemplate, LogOut, MessageSquare, Plus, CheckSquare, Trophy, Cloud, Check } from "lucide-react"
+import { usePathname } from "next/navigation"
 
-export function AppSidebar() {
+export function AppSidebar({ userEmail = "MASTER ARCHITECT", userInitial = "M", signoutAction }: { userEmail?: string, userInitial?: string, signoutAction?: () => void }) {
+  const pathname = usePathname()
+  if (pathname === '/login') return null;
   return (
     <Sidebar className="border-r border-slate-800/80 bg-[#0A0F1E] w-[280px]">
       
@@ -22,13 +25,17 @@ export function AppSidebar() {
       <SidebarHeader className="p-6 pb-2">
         <div className="flex items-center gap-4 mb-8">
           <div className="w-10 h-10 rounded-full border border-slate-700/50 bg-[#161C2C] flex items-center justify-center flex-shrink-0">
-            <span className="text-[#F59E0B] font-bold text-xs">8</span>
+            <span className="text-[#F59E0B] font-bold text-xs">{userInitial}</span>
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-bold tracking-widest text-slate-200">BIRGITTE ADM</span>
-            <button className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider flex items-center gap-1 hover:text-slate-300 transition-colors mt-0.5">
-              <LogOut className="w-3 h-3" /> LOG UD
-            </button>
+            <span className="text-sm font-bold tracking-widest text-slate-200 truncate w-36 overflow-hidden whitespace-nowrap" title={userEmail}>
+              {userEmail.split('@')[0].toUpperCase().replace('.', ' ')}
+            </span>
+            <form action={signoutAction}>
+              <button type="submit" className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider flex items-center gap-1 hover:text-slate-300 transition-colors mt-0.5">
+                <LogOut className="w-3 h-3" /> LOG UD
+              </button>
+            </form>
           </div>
         </div>
 
