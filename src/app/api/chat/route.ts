@@ -44,7 +44,13 @@ export async function POST(req: Request) {
   }
 
   const lastMessage = messages[messages.length - 1]
-  const userText = lastMessage?.content || ''
+  
+  let userText = '';
+  if (lastMessage?.parts) {
+      userText = lastMessage.parts.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('\n');
+  } else {
+      userText = lastMessage?.content || '';
+  }
 
   // 2. Intercept GEM Command
   const gemMatch = userText.match(/^GEM\s+\[?(.*?)\]?$/i)
@@ -141,10 +147,17 @@ export async function POST(req: Request) {
       contextualPrompt += `\n\n### RAG Memory Context:\n${relatedContexts.map((c: { content: string }) => c.content).join('\n---\n')}`
   }
 
+  const coreMessages = messages.map((msg: any) => {
+    if (msg.parts && msg.parts.length > 0) {
+      return { role: msg.role, content: msg.parts }
+    }
+    return { role: msg.role, content: msg.content }
+  })
+
   const result = await streamText({
     model: openai('gpt-4o'),
     system: contextualPrompt,
-    messages,
+    messages: coreMessages,
   })
   return (result as any).toDataStreamResponse?.() ?? (result as any).toTextStreamResponse?.()
 }

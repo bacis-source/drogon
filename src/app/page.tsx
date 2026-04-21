@@ -12,6 +12,24 @@ export default function ChatPage() {
   const isLoading = status !== "ready" && status !== "error";
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [attachments, setAttachments] = useState<{name: string, url: string}[]>([]);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    const files = Array.from(e.target.files);
+    
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64Url = reader.result as string;
+        setAttachments(prev => [...prev, { name: file.name, url: base64Url }]);
+      };
+      reader.readAsDataURL(file);
+    });
+    
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInput(e.target.value);
@@ -19,17 +37,22 @@ export default function ChatPage() {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() && attachments.length === 0) return;
     
+    const inputParts: any[] = [];
+    if (input.trim()) inputParts.push({ type: "text", text: input });
+    attachments.forEach(att => inputParts.push({ type: "image", image: att.url }));
+
     const payload = {
       role: "user" as const,
-      content: input,
-      parts: [{ type: "text", text: input }]
+      content: input || " ",
+      parts: inputParts.length > 0 ? inputParts : [{ type: "text", text: input }]
     };
     
     // @ts-expect-error - AI SDK evolving API types
     sendMessage(payload);
     setInput("");
+    setAttachments([]);
   };
 
   useEffect(() => {
@@ -101,7 +124,12 @@ export default function ChatPage() {
                     : "bg-[#111626] text-slate-300 border border-slate-800/60 rounded-tl-sm shadow-lg"
                 }`}>
                   <div className="leading-relaxed whitespace-pre-wrap text-[15px]">
-                    {(m as any).content || ((m as any).parts && (m as any).parts.map((p: any) => p.text).join(""))}
+                    {(m as any).content && <p>{(m as any).content}</p>}
+                    {(m as any).parts && (m as any).parts.map((p: any, i: number) => {
+                       if (p.type === 'image') return <img key={i} src={p.image} className="max-w-md w-full rounded-xl mt-3 mb-2 border border-slate-700/50 block shadow-lg object-contain bg-[#0E1320]" alt="attachment" />;
+                       if (p.type === 'text' && !(m as any).content) return <p key={i}>{p.text}</p>;
+                       return null;
+                    })}
                   </div>
                </div>
              </div>
@@ -126,6 +154,24 @@ export default function ChatPage() {
 
       {/* 3. Bottom Input Zone */}
       <div className="flex-none p-6 pt-2 w-full max-w-4xl mx-auto flex flex-col gap-6">
+
+        {/* Attachment Previews */}
+        {attachments.length > 0 && (
+          <div className="flex gap-3 px-2 flex-wrap">
+            {attachments.map((att, i) => (
+              <div key={i} className="relative group rounded-xl overflow-hidden border border-slate-700 w-16 h-16 bg-[#161C2C]">
+                <img src={att.url} alt="upload" className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity" />
+                <button 
+                  type="button" 
+                  onClick={() => setAttachments(prev => prev.filter((_, idx) => idx !== i))}
+                  className="absolute top-1 right-1 w-4 h-4 rounded-full bg-red-900/80 hover:bg-red-500/90 flex items-center justify-center text-white text-[10px] font-bold"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
         
         {/* Input Bar */}
         <form onSubmit={handleSubmit} className="relative flex items-center bg-[#111626] border border-slate-800/80 rounded-[2rem] px-2 py-1.5 shadow-[0_8px_30px_rgb(0,0,0,0.4)] focus-within:border-slate-700 transition-colors">
@@ -140,13 +186,21 @@ export default function ChatPage() {
             className="flex-1 bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-white placeholder:text-slate-600 h-10 px-2 text-[15px]"
           />
           
-          <button type="button" className="p-3 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer">
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleFileSelect} 
+            accept="image/*" 
+            multiple 
+            className="hidden" 
+          />
+          <button type="button" onClick={() => fileInputRef.current?.click()} className="p-3 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer">
             <Paperclip className="w-5 h-5" />
           </button>
 
           <Button
             type="submit"
-            disabled={isLoading || !input.trim()}
+            disabled={isLoading || (!input.trim() && attachments.length === 0)}
             className="rounded-full bg-[#202940] hover:bg-[#2A3655] text-slate-300 transition-colors w-12 h-12 flex-shrink-0 ml-1 flex items-center justify-center border border-slate-700/50"
           >
             <SendHorizontal className="w-5 h-5 ml-0.5" />
