@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState } from "react";
 
 export default function ChatPage() {
-  const { messages, append, status } = useChat();
+  const { messages, sendMessage, status } = useChat();
   const isLoading = status !== "ready" && status !== "error";
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -44,13 +44,14 @@ export default function ChatPage() {
     attachments.forEach(att => inputParts.push({ type: "image", image: att.url }));
 
     const payload = {
+      id: crypto.randomUUID(),
       role: "user" as const,
       content: input || " ",
-      parts: inputParts.length > 0 ? inputParts : [{ type: "text", text: input }]
+      parts: inputParts.length > 0 ? inputParts : undefined
     };
     
     // @ts-expect-error - AI SDK evolving API types
-    append(payload);
+    sendMessage(payload);
     setInput("");
     setAttachments([]);
   };
