@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState } from "react";
 
 export default function ChatPage() {
-  const { messages, sendMessage, status } = useChat();
+  const { messages, append, status } = useChat();
   const isLoading = status !== "ready" && status !== "error";
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -50,7 +50,7 @@ export default function ChatPage() {
     };
     
     // @ts-expect-error - AI SDK evolving API types
-    sendMessage(payload);
+    append(payload);
     setInput("");
     setAttachments([]);
   };
