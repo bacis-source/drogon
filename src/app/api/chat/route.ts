@@ -46,7 +46,7 @@ try {
         model: edgeOpenAI('gpt-4o'),
         messages: [{role: 'user', content: 'Say DIAGNOSTIC_OK'}],
      })
-     return payload.toTextStreamResponse()
+     return payload.toUIMessageStreamResponse()
   }
 
   const { messages } = await req.json()
@@ -193,7 +193,7 @@ try {
   })
   
   console.log('Stream triggered successfully.')
-  return result.toTextStreamResponse()
+  return result.toUIMessageStreamResponse()
 
 } catch (error: any) {
   console.error('FATAL API ERROR:', error)
