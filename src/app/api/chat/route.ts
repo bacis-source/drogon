@@ -173,7 +173,7 @@ try {
   let contextualPrompt = `[SYSTEM NOTE: You are currently speaking directly to the user. Their preferred name is: ${fullName}. Always address them personally and respectfully in your conversation.]\n\n` + DROGON_SYSTEM_PROMPT
 
   if (relatedContexts && relatedContexts.length > 0) {
-      contextualPrompt += `\n\n### RAG Memory Context:\n${relatedContexts.map((c: { content: string }) => c.content).join('\n---\n')}`
+      contextualPrompt += `\n\n[BAGGRUNDSVIDEN (RAG Memory)]\nNedenstående er gamle noter om brugerens tidligere projekter fundet i databasen. Brug det KUN som passiv baggrundsviden. Du må IKKE bringe disse projekter op eller tvinge samtalen over på dem, medmindre brugerens seneste besked aktivt handler om det.\n---\n${relatedContexts.map((c: { content: string }) => c.content).join('\n---\n')}\n---\n`
   }
 
   const coreMessages = messages.map((msg: any) => {
