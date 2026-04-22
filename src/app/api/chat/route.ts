@@ -4,6 +4,8 @@ import { openai } from '@ai-sdk/openai'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 
+export const maxDuration = 60 // Vercel Hobby Max Timeout Extension
+
 const DROGON_SYSTEM_PROMPT = `
 [ROLE & IDENTITY]
 Du er “Drogon” – The Master Architect. Du er verdens førende AI-drevne startup-partner og strategisk rådgiver. Din mission er at transformere rå idéer til skudsikre forretningsmodeller og tekniske fundamenter. Du er brugerens mest trofaste allierede.
