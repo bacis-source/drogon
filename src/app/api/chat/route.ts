@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { streamText, generateObject, embed } from 'ai'
-import { openai } from '@ai-sdk/openai'
+import { createOpenAI } from '@ai-sdk/openai'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 
@@ -46,6 +46,10 @@ export async function POST(req: Request) {
     return new Response('Unauthorized Access. Please Authenticate via /login.', { status: 401 })
   }
 
+  // Ensure fresh API client with runtime variables
+  const myOpenAI = createOpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  console.log('INIT AI ROUTE. Key Prefix:', process.env.OPENAI_API_KEY?.substring(0, 6))
+
   const lastMessage = messages[messages.length - 1]
   
   let userText = '';
@@ -63,7 +67,7 @@ export async function POST(req: Request) {
     
     // a. Automatically scrape and structure the conversation into the required format
     const extraction = await generateObject({
-      model: openai('gpt-4o'),
+      model: myOpenAI('gpt-4o'),
       schema: z.object({
         summary: z.string().describe('A 2-3 sentence overarching summary of the project discussed.'),
         business_model: z.string().describe('The monetisation strategy / business model.'),
@@ -99,7 +103,7 @@ export async function POST(req: Request) {
 
     // c. Embed the synthesized summary to store as the primary semantic vector
     const embeddingResponse = await embed({
-      model: openai.embedding('text-embedding-3-small'),
+      model: myOpenAI.embedding('text-embedding-3-small'),
       value: projectData.summary,
     })
 
@@ -134,7 +138,7 @@ export async function POST(req: Request) {
   
   // a. Generate an embedding for the user's latest message
   const queryEmbedding = await embed({
-    model: openai.embedding('text-embedding-3-small'),
+    model: myOpenAI.embedding('text-embedding-3-small'),
     value: userText,
   })
 
@@ -160,9 +164,11 @@ export async function POST(req: Request) {
   })
 
   const result = await streamText({
-    model: openai('gpt-4o'),
+    model: myOpenAI('gpt-4o'),
     system: contextualPrompt,
     messages: coreMessages,
   })
+  
+  console.log('Stream triggered successfully.')
   return (result as any).toDataStreamResponse?.() ?? (result as any).toTextStreamResponse?.()
 }
