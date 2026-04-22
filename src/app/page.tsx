@@ -22,8 +22,33 @@ export default function ChatPage() {
     files.forEach(file => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        const base64Url = reader.result as string;
-        setAttachments(prev => [...prev, { name: file.name, url: base64Url }]);
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          
+          // Max dimension for gpt-4o vision to maintain quality while slashing file size
+          const MAX_DIMENSION = 1200;
+          if (width > height && width > MAX_DIMENSION) {
+            height = Math.round((height * MAX_DIMENSION) / width);
+            width = MAX_DIMENSION;
+          } else if (height > MAX_DIMENSION) {
+            width = Math.round((width * MAX_DIMENSION) / height);
+            height = MAX_DIMENSION;
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            // Export as JPEG at 70% quality (reduces standard ~8MB images to ~200-400KB base64 strings)
+            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+            setAttachments(prev => [...prev, { name: file.name, url: compressedBase64 }]);
+          }
+        };
+        img.src = reader.result as string;
       };
       reader.readAsDataURL(file);
     });
