@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState } from "react";
 
 export default function ChatPage() {
-  const { messages, sendMessage, status } = useChat();
+  const { messages, sendMessage, status, error } = useChat();
   const isLoading = status !== "ready" && status !== "error";
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -147,6 +147,18 @@ export default function ChatPage() {
                     <span className="w-1.5 h-1.5 rounded-full bg-slate-500 animate-bounce" style={{ animationDelay: "150ms" }} />
                     <span className="w-1.5 h-1.5 rounded-full bg-slate-500 animate-bounce" style={{ animationDelay: "300ms" }} />
                   </div>
+               </div>
+            </div>
+          )}
+
+          {error && (
+            <div className="flex justify-start items-start gap-4">
+               <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0 mt-1">
+                 <span className="text-red-500 font-bold">!</span>
+               </div>
+               <div className="max-w-[70%] rounded-2xl rounded-tl-sm px-6 py-5 bg-[#111626] border border-red-900/50 text-red-400">
+                  <p className="font-bold mb-1">System Fejl (Backend)</p>
+                  <p className="text-sm break-all">{error.message}</p>
                </div>
             </div>
           )}
