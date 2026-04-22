@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 
 export const maxDuration = 60 // Vercel Hobby Max Timeout Extension
+export const runtime = 'edge' // Force Edge Runtime for seamless streaming
 
 const DROGON_SYSTEM_PROMPT = `
 [ROLE & IDENTITY]
@@ -37,6 +38,7 @@ Ellers besvar deres beskeder direkte, og inddrag aktivt den medsendte RAG Memory
 `
 
 export async function POST(req: Request) {
+try {
   const { messages } = await req.json()
   const supabase = await createClient()
 
@@ -171,4 +173,9 @@ export async function POST(req: Request) {
   
   console.log('Stream triggered successfully.')
   return (result as any).toDataStreamResponse?.() ?? (result as any).toTextStreamResponse?.()
+
+} catch (error: any) {
+  console.error('FATAL API ERROR:', error)
+  return new Response('Fatal backend error: ' + (error.message || error.toString()), { status: 500 })
+}
 }
