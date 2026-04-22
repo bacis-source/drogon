@@ -169,10 +169,12 @@ try {
   }
 
   const coreMessages = messages.map((msg: any) => {
-    if (msg.parts && msg.parts.length > 0) {
+    // Only pass parts for user messages (e.g. for multi-modal image uploads)
+    if (msg.role === 'user' && msg.parts && msg.parts.length > 0) {
       return { role: msg.role, content: msg.parts }
     }
-    return { role: msg.role, content: msg.content }
+    // For assistant messages and everything else, strictly use the string content
+    return { role: msg.role, content: msg.content || '' }
   })
 
   // Synchronous API Key Validation Flight
