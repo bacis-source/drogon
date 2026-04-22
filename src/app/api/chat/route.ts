@@ -39,6 +39,16 @@ Ellers besvar deres beskeder direkte, og inddrag aktivt den medsendte RAG Memory
 
 export async function POST(req: Request) {
 try {
+  // EMERGENCY DIAGNOSTIC BYPASS
+  if (req.headers.get("x-bypass") === "diagnostic123") {
+     const edgeOpenAI = createOpenAI({ apiKey: process.env.OPENAI_API_KEY })
+     const payload = await streamText({
+        model: edgeOpenAI('gpt-4o'),
+        messages: [{role: 'user', content: 'Say DIAGNOSTIC_OK'}],
+     })
+     return payload.toDataStreamResponse()
+  }
+
   const { messages } = await req.json()
   const supabase = await createClient()
 
@@ -172,7 +182,7 @@ try {
   })
   
   console.log('Stream triggered successfully.')
-  return (result as any).toDataStreamResponse?.() ?? (result as any).toTextStreamResponse?.()
+  return result.toDataStreamResponse()
 
 } catch (error: any) {
   console.error('FATAL API ERROR:', error)
