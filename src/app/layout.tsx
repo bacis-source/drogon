@@ -32,6 +32,17 @@ export default async function RootLayout({
   const userEmail = user?.email || "Master Architect";
   const userInitial = userEmail.charAt(0).toUpperCase();
 
+  let projects: any[] = [];
+  if (user) {
+    const { data: userProjects } = await supabase
+      .from('projects')
+      .select('id, name')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+    
+    if (userProjects) projects = userProjects;
+  }
+
   return (
     <html
       lang="en"
@@ -47,7 +58,7 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <SidebarProvider>
-            <AppSidebar userEmail={userEmail} userInitial={userInitial} signoutAction={signout} />
+            <AppSidebar userEmail={userEmail} userInitial={userInitial} signoutAction={signout} projects={projects} />
             <main className="flex-1 flex flex-col overflow-hidden">
               {children}
             </main>

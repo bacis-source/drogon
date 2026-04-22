@@ -15,7 +15,12 @@ import {
 import { Compass, FileText, LayoutTemplate, LogOut, MessageSquare, Plus, CheckSquare, Trophy, Cloud, Check } from "lucide-react"
 import { usePathname } from "next/navigation"
 
-export function AppSidebar({ userEmail = "MASTER ARCHITECT", userInitial = "M", signoutAction }: { userEmail?: string, userInitial?: string, signoutAction?: () => void }) {
+interface Project {
+  id: number | string;
+  name: string;
+}
+
+export function AppSidebar({ userEmail = "MASTER ARCHITECT", userInitial = "M", signoutAction, projects = [] }: { userEmail?: string, userInitial?: string, signoutAction?: () => void, projects?: Project[] }) {
   const pathname = usePathname()
   if (pathname === '/login') return null;
   return (
@@ -57,13 +62,23 @@ export function AppSidebar({ userEmail = "MASTER ARCHITECT", userInitial = "M", 
              </button>
           </div>
           <SidebarGroupContent>
-            {/* Active Archive Item */}
-            <div className="w-full bg-[#111626] border border-[#F59E0B]/30 rounded-xl p-3 flex justify-between items-center cursor-pointer hover:border-[#F59E0B]/60 transition-colors mb-6 shadow-[0_0_15px_rgba(245,158,11,0.05)]">
-              <div className="flex flex-col">
-                <span className="text-xs font-bold tracking-wider text-[#F59E0B] leading-none mb-1 uppercase">MIN FØRSTE VISION</span>
-                <span className="text-[9px] font-semibold text-slate-500 tracking-widest">LVL 1</span>
-              </div>
-              <span className="text-[#F59E0B]">›</span>
+            
+            <div className="flex flex-col gap-2 mb-6 max-h-[160px] overflow-y-auto pr-1 nice-scrollbar">
+              {projects.length === 0 ? (
+                  <div className="px-3 py-4 text-center border border-dashed border-slate-800 rounded-xl">
+                     <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">INGEN VISIONER ENDNU</span>
+                  </div>
+              ) : projects.map((p, index) => (
+                  <div key={p.id} className={`w-full bg-[#111626] border ${index === 0 ? 'border-[#F59E0B]/50 shadow-[0_0_15px_rgba(245,158,11,0.05)]' : 'border-slate-800/80 hover:border-slate-700'} rounded-xl p-3 flex justify-between items-center cursor-pointer transition-colors`}>
+                    <div className="flex flex-col max-w-[85%]">
+                      <span className={`text-xs font-bold tracking-wider ${index === 0 ? 'text-[#F59E0B]' : 'text-slate-300'} leading-none mb-1 uppercase truncate`} title={p.name}>
+                        {p.name}
+                      </span>
+                      <span className="text-[9px] font-semibold text-slate-500 tracking-widest">LVL 1</span>
+                    </div>
+                    <span className={index === 0 ? "text-[#F59E0B]" : "text-slate-600"}>›</span>
+                  </div>
+              ))}
             </div>
 
             {/* Main Menu */}
