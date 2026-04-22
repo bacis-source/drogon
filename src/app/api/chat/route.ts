@@ -46,7 +46,7 @@ try {
         model: edgeOpenAI('gpt-4o'),
         messages: [{role: 'user', content: 'Say DIAGNOSTIC_OK'}],
      })
-     return payload.toDataStreamResponse()
+     return payload.toTextStreamResponse()
   }
 
   const { messages } = await req.json()
@@ -182,13 +182,7 @@ try {
   })
   
   console.log('Stream triggered successfully.')
-  return result.toDataStreamResponse({
-    sendUsage: true,
-    getErrorMessage: (err: any) => {
-      console.error('ASYNC STREAM ERROR:', err)
-      return `Forbindelsesfejl til OpenAI: ${err.message || String(err)}`
-    }
-  })
+  return result.toTextStreamResponse()
 
 } catch (error: any) {
   console.error('FATAL API ERROR:', error)
