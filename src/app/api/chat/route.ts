@@ -182,7 +182,13 @@ try {
   })
   
   console.log('Stream triggered successfully.')
-  return result.toDataStreamResponse()
+  return result.toDataStreamResponse({
+    sendUsage: true,
+    getErrorMessage: (err: any) => {
+      console.error('ASYNC STREAM ERROR:', err)
+      return `Forbindelsesfejl til OpenAI: ${err.message || String(err)}`
+    }
+  })
 
 } catch (error: any) {
   console.error('FATAL API ERROR:', error)
