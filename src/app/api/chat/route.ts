@@ -142,7 +142,9 @@ export async function POST(req: Request) {
     match_count: 3
   })
 
-  let contextualPrompt = DROGON_SYSTEM_PROMPT
+  const fullName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Visionæren'
+  let contextualPrompt = `[SYSTEM NOTE: You are currently speaking directly to the user. Their preferred name is: ${fullName}. Always address them personally and respectfully in your conversation.]\n\n` + DROGON_SYSTEM_PROMPT
+
   if (relatedContexts && relatedContexts.length > 0) {
       contextualPrompt += `\n\n### RAG Memory Context:\n${relatedContexts.map((c: { content: string }) => c.content).join('\n---\n')}`
   }

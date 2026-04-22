@@ -47,11 +47,27 @@ function LoginContent() {
               id="email" 
               name="email" 
               type="email" 
-              placeholder="Brugernavn"
+              placeholder="Email"
               className="bg-[#050810] border-0 focus-visible:ring-1 focus-visible:ring-[#F59E0B]/50 text-white placeholder:text-slate-500 h-14 pl-12 rounded-xl text-base shadow-inner"
               required 
             />
           </div>
+
+          {isSignUp && (
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500 group-focus-within:text-[#F59E0B] transition-colors">
+                <User className="h-5 w-5" />
+              </div>
+              <Input 
+                id="full_name" 
+                name="full_name" 
+                type="text" 
+                placeholder="Fornavn (Hvordan skal Drogon tiltale dig?)"
+                className="bg-[#050810] border-0 focus-visible:ring-1 focus-visible:ring-[#F59E0B]/50 text-white placeholder:text-slate-500 h-14 pl-12 rounded-xl text-base shadow-inner"
+                required={isSignUp}
+              />
+            </div>
+          )}
           
           <div className="relative group">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500 group-focus-within:text-[#F59E0B] transition-colors">

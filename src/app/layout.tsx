@@ -29,8 +29,9 @@ export default async function RootLayout({
 }>) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const userEmail = user?.email || "Master Architect";
-  const userInitial = userEmail.charAt(0).toUpperCase();
+  const rawName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || "Master Architect";
+  const userEmail = rawName.toUpperCase();
+  const userInitial = userEmail.charAt(0);
 
   let projects: any[] = [];
   if (user) {
