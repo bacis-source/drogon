@@ -70,9 +70,13 @@ try {
   
   let userText = '';
   if (lastMessage?.parts) {
-      userText = lastMessage.parts.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('\n');
+      userText = lastMessage.parts.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('\n').trim();
   } else {
-      userText = lastMessage?.content || '';
+      userText = lastMessage?.content?.trim() || '';
+  }
+  
+  if (!userText) {
+      userText = '[Billede eller fil uploadet af brugeren uden tekst]';
   }
 
   // 2. Intercept GEM Command
