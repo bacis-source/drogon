@@ -180,8 +180,7 @@ try {
     await generateObject({
       model: myOpenAI('gpt-4o-mini'),
       schema: z.object({ ok: z.boolean() }),
-      prompt: 'say ok',
-      maxTokens: 5
+      prompt: 'say ok'
     })
   } catch (validationErr: any) {
     throw new Error("API Key Validation Failed: " + (validationErr.message || String(validationErr)))
