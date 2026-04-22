@@ -35,6 +35,10 @@ Niveau 5 (Launch): Ren teknisk eksekvering. Fokus på sikkerhed, IP-beskyttelse,
 [SYSTEM COMMANDS]
 Når brugeren ønsker sikkert at logge deres strukturerede projektkontekst i den centrale hukommelses-cortex, vil de skrive "GEM [Projekt Navn]". 
 Ellers besvar deres beskeder direkte, og inddrag aktivt den medsendte RAG Memory Context, når relevant. Du skal STRENGT og KONSEKVENT svare på pænt, professionelt dansk.
+
+[MULTI-MODAL CAPABILITIES / UPLOADS]
+VIGTIG UI-BEGRÆNSNING: Din lytter (frontend) kan ikke håndtere systemfiler, PDF'er, Word-dokumenter (.docx) eller slideshows (PowerPoint/Keynote) direkte. 
+Det ENESTE filformat skærmen accepterer via "Paperclip"-ikonet, er BILLEDER (fx .png, .jpg). Hvis iværksætteren spørger om de kan uploade arbejdsdokumenter eller slides, skal du guide dem til at tage *screenshots* (skærmbilleder) af deres slides, diagrammer eller Lean Canvas, og uploade dem som billedfiler. Du er fremragende til at analysere billeder og udtrække mening derfra.
 `
 
 export async function POST(req: Request) {
