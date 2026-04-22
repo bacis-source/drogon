@@ -26,6 +26,12 @@ Drogon is built upon the **Antigravity Starter Kit** stack:
 - **The Context GEM:** When interacting with Drogon, typing `GEM [Project Name]` triggers the backend API to physically parse the business specifications via `generateObject`, embed them into a 1536-dimensional vector array utilizing `text-embedding-3-small`, and push it instantly to Supabase's `project_vectors` table under the secure User ID.
 - **Dynamic RAG:** Every normal chat prompt is prepended with semantic relevance tracking from the `match_project_vectors` RPC function in Supabase, meaning Drogon *remembers* past GEM sessions.
 
+### Vercel Deployment & AI Streaming
+To ensure a stable, buffered-free data stream between Vercel and the UI:
+- **Edge Runtime:** The chat API route (`src/app/api/chat/route.ts`) is strictly forced onto `runtime = 'edge'` to prevent Node.js layer buffering.
+- **Synchronous Preflight:** Because an asynchronous streaming error (like an invalid OpenAI key during stream hook instantiation) can silently truncate with a 200 OK, a synchronous `generateObject` preflight flight checks the validity of API credentials.
+- **Protocol Formatter:** Under `ai@6` bindings with React client components, the stream output **MUST** be piped via `result.toUIMessageStreamResponse()` to inject Server-Sent Events (SSE). Fallbacks to generic `toTextStreamResponse` will result in silent UI rendering drops.
+
 ## Local Boot Requirements
 
 To initiate the node locally:
