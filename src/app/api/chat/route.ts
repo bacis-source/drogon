@@ -175,6 +175,18 @@ try {
     return { role: msg.role, content: msg.content }
   })
 
+  // Synchronous API Key Validation Flight
+  try {
+    await generateObject({
+      model: myOpenAI('gpt-4o-mini'),
+      schema: z.object({ ok: z.boolean() }),
+      prompt: 'say ok',
+      maxTokens: 5
+    })
+  } catch (validationErr: any) {
+    throw new Error("API Key Validation Failed: " + (validationErr.message || String(validationErr)))
+  }
+
   const result = await streamText({
     model: myOpenAI('gpt-4o'),
     system: contextualPrompt,
