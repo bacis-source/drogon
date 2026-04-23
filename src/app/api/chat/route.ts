@@ -155,16 +155,19 @@ try {
         return new Response('Database structural error when saving vectors: ' + (vErr.message || JSON.stringify(vErr)), { status: 500 })
     }
 
-    // e. Return direct streaming response to acknowledge saving.
-    // The Vercel AI SDK stream requires specific encoding, but for simplicity, we mock a single burst
-    const encoder = new TextEncoder()
-    const stream = new ReadableStream({
-      start(controller) {
-        controller.enqueue(encoder.encode(`0:${JSON.stringify('GEM Saved Successfully. Project: ' + projectName + ' is now logged in the central memory cortex.')}\n`))
-        controller.close()
-      }
+    // e. Have the AI automatically generate a confirmation response natively
+    const result = await streamText({
+        model: myOpenAI('gpt-4o-mini'),
+        prompt: `SYSTEM EVENT: The project vision "${projectName}" was just SUCCESSFULLY saved into the central RAG Postgres database. 
+        Data extracted and saved:
+        Summary: ${projectData.summary}
+        Business Model: ${projectData.business_model}
+        Tech Spec: ${projectData.tech_spec}
+        IP Strategy: ${projectData.ip_strategy}
+        
+        INSTRUCTION: Speak directly to the user. Confirm that "${projectName}" is now permanently locked in the central memory cortex. Briefly (in 2-3 short bullet points) mirror back what you extracted to demonstrate that the data was captured accurately. Adopt your usual 'Drogon' persona.`,
     })
-    return new Response(stream, { headers: { "Content-Type": "text/plain; charset=utf-8" } })
+    return result.toUIMessageStreamResponse()
   }
 
   // 3. Normal Chat handling (RAG Pipeline)
