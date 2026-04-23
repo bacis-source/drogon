@@ -16,6 +16,7 @@ export default function ChatPage() {
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const [attachments, setAttachments] = useState<{name: string, url: string}[]>([]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -101,7 +102,13 @@ export default function ChatPage() {
         </div>
 
         <div className="flex items-center gap-4">
-          <button className="flex items-center gap-2 px-4 py-2 border border-[#F59E0B] rounded-full text-[#F59E0B] hover:bg-[#F59E0B]/10 transition-colors">
+          <button 
+            onClick={() => {
+              setInput("GEM ");
+              inputRef.current?.focus();
+            }}
+            className="flex items-center gap-2 px-4 py-2 border border-[#F59E0B] rounded-full text-[#F59E0B] hover:bg-[#F59E0B]/10 transition-colors"
+          >
             <Save className="w-4 h-4" />
             <span className="text-[10px] font-bold tracking-widest uppercase">GEM VISION</span>
           </button>
