@@ -193,7 +193,7 @@ try {
   // b. Search Supabase for similar past contexts
   const { data: relatedContexts } = await supabase.rpc('match_project_vectors', {
     query_embedding: queryEmbedding.embedding,
-    match_threshold: 0.4, // Lowered threshold for more semantic recall
+    match_threshold: 0.1, // Drastically lowered threshold. We rely on Top-K ordering instead of arbitrary cutoffs.
     match_count: 3
   })
 
