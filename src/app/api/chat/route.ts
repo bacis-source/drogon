@@ -108,7 +108,7 @@ try {
         ip_strategy: z.string().describe('The intellectual property strategy or unique selling proposition.'),
       }),
       messages: [
-        { role: 'system', content: `Extract the project details for "${projectName}" from the following conversation history. If missing, make logical assumptions strictly based on context.` },
+        { role: 'system', content: `Uddrag de specifikke projektdetaljer for "${projectName}" fra den følgende chathistorik. Svarene SKAL skrives på dansk. Hvis nogle detaljer mangler, lav logiske og kvalificerede antagelser strengt baseret på den eksisterende kontekst.` },
         ...coreMessages.slice(0, -1) // All prior messages
       ]
     })
@@ -158,14 +158,14 @@ try {
     // e. Have the AI automatically generate a confirmation response natively
     const result = await streamText({
         model: myOpenAI('gpt-4o-mini'),
-        prompt: `SYSTEM EVENT: The project vision "${projectName}" was just SUCCESSFULLY saved into the central RAG Postgres database. 
-        Data extracted and saved:
-        Summary: ${projectData.summary}
-        Business Model: ${projectData.business_model}
-        Tech Spec: ${projectData.tech_spec}
-        IP Strategy: ${projectData.ip_strategy}
+        prompt: `SYSTEM EVENT: Projektets vision "${projectName}" er netop, med succes, blevet gemt i den centrale RAG Postgres database. 
+        Her er den udtrukne data, der blev gemt:
+        Resume: ${projectData.summary}
+        Forretningsmodel: ${projectData.business_model}
+        Teknisk Spec: ${projectData.tech_spec}
+        IP Strategi: ${projectData.ip_strategy}
         
-        INSTRUCTION: Speak directly to the user. Confirm that "${projectName}" is now permanently locked in the central memory cortex. Briefly (in 2-3 short bullet points) mirror back what you extracted to demonstrate that the data was captured accurately. Adopt your usual 'Drogon' persona.`,
+        INSTRUKTION: Tal direkte til brugeren på DANSK. Bekræft at "${projectName}" nu er permanent fastlåst i den centrale hukommelses-cortex. Spejl derefter (i 2-3 helt korte punkter) præcis den data tilbage du trak ud, for at bevise at maskinen forstod det korrekt. Værdsæt visionen og fasthold din sædvanlige mørke, strategiske 'Drogon' persona. SKRIV PÅ DANSK!`,
     })
     return result.toUIMessageStreamResponse()
   }
