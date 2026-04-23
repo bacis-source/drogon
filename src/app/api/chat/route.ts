@@ -131,7 +131,7 @@ try {
 
     if (pErr) {
       console.error(pErr)
-      return new Response('Database structural error when saving project.', { status: 500 })
+      return new Response('Database structural error when saving project: ' + (pErr.message || JSON.stringify(pErr)), { status: 500 })
     }
 
     // c. Embed the synthesized summary to store as the primary semantic vector
@@ -152,7 +152,7 @@ try {
 
     if (vErr) {
         console.error(vErr)
-        return new Response('Database structural error when saving vectors.', { status: 500 })
+        return new Response('Database structural error when saving vectors: ' + (vErr.message || JSON.stringify(vErr)), { status: 500 })
     }
 
     // e. Return direct streaming response to acknowledge saving.
