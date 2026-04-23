@@ -62,7 +62,7 @@ try {
      return payload.toUIMessageStreamResponse()
   }
 
-  const { messages } = await req.json()
+  const { messages, gritLevel = 1 } = await req.json()
   const supabase = await createClient()
 
   // 1. Authorize User
@@ -208,6 +208,8 @@ try {
   } catch (validationErr: any) {
     throw new Error("API Key Validation Failed: " + (validationErr.message || String(validationErr)))
   }
+
+  contextualPrompt += `\n\n[AKTIVT GRIT NIVEAU FOR NÆSTE SVAR]\nBrugeren har netop sat dit Grit Level til: ${gritLevel} ud af 5 for denne chat. Du SKAL tilpasse din modstand, dit pres og din tone præcis til dette niveau jf. din 'THE GRIT PROGRESSION' opskrift.`
 
   const result = await streamText({
     model: myOpenAI('gpt-4o'),

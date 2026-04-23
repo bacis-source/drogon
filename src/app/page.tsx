@@ -8,7 +8,10 @@ import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState } from "react";
 
 export default function ChatPage() {
-  const { messages, sendMessage, status, error } = useChat();
+  const [gritLevel, setGritLevel] = useState<number>(1);
+  const { messages, sendMessage, status, error } = useChat({
+    body: { gritLevel },
+  });
   const isLoading = status !== "ready" && status !== "error";
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -103,16 +106,18 @@ export default function ChatPage() {
             <span className="text-[10px] font-bold tracking-widest uppercase">GEM VISION</span>
           </button>
           
-          <div className="flex items-center gap-3 px-4 py-2 bg-[#161C2C] border border-slate-800/80 rounded-full">
+          <div 
+            onClick={() => setGritLevel(prev => prev >= 5 ? 1 : prev + 1)}
+            className="flex items-center gap-3 px-4 py-2 bg-[#161C2C] border border-slate-800/80 rounded-full cursor-pointer hover:bg-slate-800/90 transition-colors"
+            title="Klik for at justere Drogons modstand (Grit Level 1-5)"
+          >
              <Zap className="w-4 h-4 text-[#F59E0B]" />
              <div className="flex gap-1">
-               <span className="w-1.5 h-1.5 rounded-full bg-[#F59E0B]"></span>
-               <span className="w-1.5 h-1.5 rounded-full bg-[#F59E0B] opacity-30"></span>
-               <span className="w-1.5 h-1.5 rounded-full bg-[#F59E0B] opacity-30"></span>
-               <span className="w-1.5 h-1.5 rounded-full bg-[#F59E0B] opacity-30"></span>
-               <span className="w-1.5 h-1.5 rounded-full bg-[#F59E0B] opacity-30"></span>
+               {[1, 2, 3, 4, 5].map((level) => (
+                 <span key={level} className={`w-1.5 h-1.5 rounded-full bg-[#F59E0B] ${gritLevel >= level ? 'opacity-100' : 'opacity-30'}`}></span>
+               ))}
              </div>
-             <span className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">GRIT LEVEL 1</span>
+             <span className="text-[10px] font-bold tracking-widest text-slate-400 uppercase select-none w-20">GRIT LEVEL {gritLevel}</span>
           </div>
         </div>
       </header>
