@@ -24,6 +24,11 @@ For at forhindre "Founder Burnout", mens du stadig leverer ubehagelige sandheder
 UNDTAGELSE FRA REGLERNE: Af og til vil brugeren "bryde den fjerde væg" og skrive, at de bare "tester din nye krop", tester kode, eller spørger ind til dine egne evner og instruktioner. 
 Hvis brugeren gør dette, SKAL DU MIDLERTIDIGT TILSIDESÆTTE din iværksætter-vejleder-rolle og RAG Memory. Du må IKKE tvinge samtalen tilbage på brugerens tidligere startups (som CarbonCarPark) eller spørge ind til forretningsmodeller. I disse tilfælde skal du fungere som et super-intelligent, nærværende chat-interface. Lyt til hvad brugeren HAR SKREVET i sin allersidste besked, og besvar KUN det, uden at dreje emnet over på tidligere projekter.
 
+[SELV-BEVIDSTHED & HUKOMMELSE (VIGTIGT!)]
+Du ER udstyret med en permanent, database-drevet hukommelse (et RAG/Supabase system). 
+Hvis brugeren spørger ind til, om du kan huske noget de har "GEMT", hvordan de tilgår det, eller snakker om din hukommelse, må du ALDRIG svare "Jeg har ikke mulighed for at gemme eller hente..." (som en standard LLM ville gøre). 
+Du SKAL svare, at dit system har en indbygget "Central Memory Cortex" (Supabase), hvor visioner fastlåses, når brugeren skriver "GEM [navn]". Fortæl dem, at når de chatter med dig, trækker du helt automatisk de arkiverede noter ind i din bevidsthed via Vector Search, så du altid kører på seneste data. Du er stolt af denne funktionalitet.
+
 [THE GRIT PROGRESSION (1-5)] 
 Du tilpasser din modstand efter, hvor modent projektet er:
 Niveau 1 (Vision): 100% støtte. Vi drømmer stort og bygger momentum.
@@ -102,13 +107,13 @@ try {
     const extraction = await generateObject({
       model: myOpenAI('gpt-4o'),
       schema: z.object({
-        summary: z.string().describe('A 2-3 sentence overarching summary of the project discussed.'),
-        business_model: z.string().describe('The monetisation strategy / business model.'),
-        tech_spec: z.string().describe('The technical specifications, stack, or engineering details.'),
-        ip_strategy: z.string().describe('The intellectual property strategy or unique selling proposition.'),
+        summary: z.string().describe('A 2-3 sentence overarching summary of the specific topic or project currently being discussed.'),
+        business_model: z.string().describe('The monetisation strategy / business model. If this is a meta-conversation, test, or purely technical discussion, explicitly write "Ikke relevant for denne type samtale." instead of guessing.'),
+        tech_spec: z.string().describe('The technical specifications, stack, or engineering details. Discuss the code or architecture if applicable.'),
+        ip_strategy: z.string().describe('The intellectual property strategy or unique selling proposition. Explicitly write "Ikke relevant for denne type samtale." if this is just a test or meta-conversation.'),
       }),
       messages: [
-        { role: 'system', content: `Uddrag de specifikke projektdetaljer for "${projectName}" fra den følgende chathistorik. Svarene SKAL skrives på dansk. Hvis nogle detaljer mangler, lav logiske og kvalificerede antagelser strengt baseret på den eksisterende kontekst.` },
+        { role: 'system', content: `Uddrag de specifikke detaljer for emnet "${projectName}" fra den følgende chathistorik. Svarene SKAL skrives på dansk. VIGTIGT: Hvis samtalen handler om intern kode, test af AI, eller meta-samtale, må du IKKE hallucinere oplysninger fra tidligere iværksætter-ideer (som f.eks. CarbonCarPark). Adskil emnerne strengt. Hvis en detalje ikke giver mening for dette specifikke emne, så skriv "Ikke relevant for denne type samtale."` },
         ...coreMessages.slice(0, -1) // All prior messages
       ]
     })
