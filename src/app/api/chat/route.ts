@@ -146,9 +146,11 @@ try {
     }
 
     // c. Embed the synthesized summary to store as the primary semantic vector
+    const embeddedContent = `Projekt Navn: ${projectName}\nResume: ${projectData.summary}\nForretningsmodel: ${projectData.business_model}\nTeknisk Spec: ${projectData.tech_spec}\nIP Strategi: ${projectData.ip_strategy}`
+
     const embeddingResponse = await embed({
       model: myOpenAI.embedding('text-embedding-3-small'),
-      value: projectData.summary,
+      value: embeddedContent,
     })
 
     // d. Insert into project_vectors
@@ -156,7 +158,7 @@ try {
       .from('project_vectors')
       .insert({
         project_id: projectRow.id,
-        content: projectData.summary,
+        content: embeddedContent,
         embedding: embeddingResponse.embedding,
         metadata: { ...projectData }
       })
@@ -192,7 +194,7 @@ try {
   // b. Search Supabase for similar past contexts
   const { data: relatedContexts } = await supabase.rpc('match_project_vectors', {
     query_embedding: queryEmbedding.embedding,
-    match_threshold: 0.7, // Only strongly related contexts
+    match_threshold: 0.4, // Lowered threshold for more semantic recall
     match_count: 3
   })
 
