@@ -72,6 +72,15 @@ try {
 
   const lastMessage = messages[messages.length - 1]
   
+  const coreMessages = messages.map((msg: any) => {
+    // Only pass parts for user messages (e.g. for multi-modal image uploads)
+    if (msg.role === 'user' && msg.parts && msg.parts.length > 0) {
+      return { role: msg.role, content: msg.parts }
+    }
+    // For assistant messages and everything else, strictly use the string content
+    return { role: msg.role, content: msg.content || '' }
+  })
+  
   let userText = '';
   if (lastMessage?.parts) {
       userText = lastMessage.parts.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('\n').trim();
@@ -100,7 +109,7 @@ try {
       }),
       messages: [
         { role: 'system', content: `Extract the project details for "${projectName}" from the following conversation history. If missing, make logical assumptions strictly based on context.` },
-        ...messages.slice(0, -1) // All prior messages
+        ...coreMessages.slice(0, -1) // All prior messages
       ]
     })
 
@@ -180,15 +189,7 @@ try {
       contextualPrompt += `\n\n[BAGGRUNDSVIDEN (RAG Memory)]\nNedenstående er gamle noter om brugerens tidligere projekter fundet i databasen. Brug det KUN som passiv baggrundsviden. Du må IKKE bringe disse projekter op eller tvinge samtalen over på dem, medmindre brugerens seneste besked aktivt handler om det.\n---\n${relatedContexts.map((c: { content: string }) => c.content).join('\n---\n')}\n---\n`
   }
 
-  const coreMessages = messages.map((msg: any) => {
-    // Only pass parts for user messages (e.g. for multi-modal image uploads)
-    if (msg.role === 'user' && msg.parts && msg.parts.length > 0) {
-      return { role: msg.role, content: msg.parts }
-    }
-    // For assistant messages and everything else, strictly use the string content
-    return { role: msg.role, content: msg.content || '' }
-  })
-
+  // Removed coreMessages map block as it was hoisted above the GEM intercept
   // Synchronous API Key Validation Flight
   try {
     await generateObject({
