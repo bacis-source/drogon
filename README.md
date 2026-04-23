@@ -24,13 +24,15 @@ Drogon is built upon the **Antigravity Starter Kit** stack:
 ### Key Features
 - **Route Protection Tunnel:** Accessing `localhost:3000` automatically bounces unauthenticated traffic to the secure Danish `/login` portal.
 - **The Context GEM:** When interacting with Drogon, typing `GEM [Project Name]` triggers the backend API to physically parse the business specifications via `generateObject`, embed them into a 1536-dimensional vector array utilizing `text-embedding-3-small`, and push it instantly to Supabase's `project_vectors` table under the secure User ID.
-- **Dynamic RAG:** Every normal chat prompt is prepended with semantic relevance tracking from the `match_project_vectors` RPC function in Supabase, meaning Drogon *remembers* past GEM sessions.
+- **Dynamic RAG & Self-Awareness:** Every normal chat prompt is prepended with semantic relevance tracking from the `match_project_vectors` RPC function in Supabase. A strict custom directive completely overwrites the base LLM hallucination of "I have no memory", providing Drogon with full structural self-awareness of his own Postgres connections.
+- **Client-Side Image Compression:** To bypass Vercel's strict 4.5MB Edge Payload limits, all multimedia uploads are client-rendered to an invisible Canvas overlay, scaled to a 1200px max-dimension, and encoded as 70% quality JPEGs directly within `page.tsx` before transmission.
+- **Interactive Grit Level UI:** The "Grit Level" is wired directly into the chat system. Clicking the Grit UI component changes React State, pipelines integer parameters down the chat HTTP Request body, and re-factors Drogon's real-time baseline system prompt.
 
 ### Vercel Deployment & AI Streaming
 To ensure a stable, buffered-free data stream between Vercel and the UI:
 - **Edge Runtime:** The chat API route (`src/app/api/chat/route.ts`) is strictly forced onto `runtime = 'edge'` to prevent Node.js layer buffering.
 - **Synchronous Preflight:** Because an asynchronous streaming error (like an invalid OpenAI key during stream hook instantiation) can silently truncate with a 200 OK, a synchronous `generateObject` preflight flight checks the validity of API credentials.
-- **Protocol Formatter:** Under `ai@6` bindings with React client components, the stream output **MUST** be piped via `result.toUIMessageStreamResponse()` to inject Server-Sent Events (SSE). Fallbacks to generic `toTextStreamResponse` will result in silent UI rendering drops.
+- **Native UI Stream Interception:** When Drogon executes internal backend tasks (like interacting with Supabase databases during a GEM), the completion is seamlessly handed over to `streamText()` rather than mocking raw chunk strings. This forces full compliance with Vercel's strict `toUIMessageStreamResponse()` protocol.
 
 ## Local Boot Requirements
 
