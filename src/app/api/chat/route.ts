@@ -189,7 +189,7 @@ try {
   // a. Generate an embedding for the user's latest message (Truncated safely below 8192 tokens)
   const queryEmbedding = await embed({
     model: myOpenAI.embedding('text-embedding-3-small'),
-    value: userText.slice(0, 25000),
+    value: userText.slice(0, 4000), // Hard cap at ~1000 tokens. Code splits into many tokens, and we only need the start anyway for semantic intent
   })
 
   // b. Search Supabase for similar past contexts
