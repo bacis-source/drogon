@@ -151,7 +151,7 @@ try {
 
     const embeddingResponse = await embed({
       model: myOpenAI.embedding('text-embedding-3-small'),
-      value: embeddedContent,
+      value: embeddedContent.slice(0, 25000), // Truncate to prevent 8192 token crash
     })
 
     // d. Insert into project_vectors
@@ -186,10 +186,10 @@ try {
 
   // 3. Normal Chat handling (RAG Pipeline)
   
-  // a. Generate an embedding for the user's latest message
+  // a. Generate an embedding for the user's latest message (Truncated safely below 8192 tokens)
   const queryEmbedding = await embed({
     model: myOpenAI.embedding('text-embedding-3-small'),
-    value: userText,
+    value: userText.slice(0, 25000),
   })
 
   // b. Search Supabase for similar past contexts
