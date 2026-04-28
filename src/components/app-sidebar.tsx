@@ -13,8 +13,7 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar"
 import { Compass, FileText, LayoutTemplate, LogOut, MessageSquare, Plus, CheckSquare, Trophy, Cloud, Check } from "lucide-react"
-import { usePathname } from "next/navigation"
-import Link from "next/link"
+import { usePathname, useRouter } from "next/navigation"
 
 interface Project {
   id: number | string;
@@ -23,6 +22,7 @@ interface Project {
 
 export function AppSidebar({ userEmail = "MASTER ARCHITECT", userInitial = "M", signoutAction, projects = [] }: { userEmail?: string, userInitial?: string, signoutAction?: () => void, projects?: Project[] }) {
   const pathname = usePathname()
+  const router = useRouter()
   if (pathname === '/login') return null;
   return (
     <Sidebar className="border-r border-slate-800/80 bg-[#0A0F1E] w-[280px]">
@@ -88,20 +88,22 @@ export function AppSidebar({ userEmail = "MASTER ARCHITECT", userInitial = "M", 
             {/* Main Menu */}
             <SidebarMenu className="gap-2">
               <SidebarMenuItem>
-                <SidebarMenuButton asChild className={`w-full hover:bg-[#EAB308] rounded-xl h-12 justify-start font-bold uppercase tracking-wider text-xs flex items-center gap-3 transition-colors ${pathname === '/' ? 'bg-[#F59E0B] text-[#0A0F1E] active:bg-[#D97706]' : 'text-slate-400 hover:text-[#0A0F1E]'}`}>
-                  <Link href="/">
-                    <MessageSquare className="w-4 h-4 ml-1" />
-                    SAMTALE
-                  </Link>
+                <SidebarMenuButton 
+                  onClick={() => router.push('/')}
+                  className={`w-full hover:bg-[#EAB308] rounded-xl h-12 justify-start font-bold uppercase tracking-wider text-xs flex items-center gap-3 transition-colors ${pathname === '/' ? 'bg-[#F59E0B] text-[#0A0F1E] active:bg-[#D97706]' : 'text-slate-400 hover:text-[#0A0F1E]'}`}
+                >
+                  <MessageSquare className="w-4 h-4 ml-1" />
+                  SAMTALE
                 </SidebarMenuButton>
               </SidebarMenuItem>
               
               <SidebarMenuItem>
-                <SidebarMenuButton asChild className={`w-full hover:bg-[#EAB308] rounded-xl h-10 justify-start font-bold uppercase tracking-wider text-xs flex items-center gap-3 transition-colors ${pathname === '/canvas' ? 'bg-[#F59E0B] text-[#0A0F1E] active:bg-[#D97706]' : 'text-slate-400 hover:text-[#0A0F1E] hover:bg-slate-800/50'}`}>
-                  <Link href="/canvas">
-                    <LayoutTemplate className="w-4 h-4 ml-1" />
-                    LEAN CANVAS
-                  </Link>
+                <SidebarMenuButton 
+                  onClick={() => router.push('/canvas')}
+                  className={`w-full hover:bg-[#EAB308] rounded-xl h-10 justify-start font-bold uppercase tracking-wider text-xs flex items-center gap-3 transition-colors ${pathname === '/canvas' ? 'bg-[#F59E0B] text-[#0A0F1E] active:bg-[#D97706]' : 'text-slate-400 hover:text-[#0A0F1E] hover:bg-slate-800/50'}`}
+                >
+                  <LayoutTemplate className="w-4 h-4 ml-1" />
+                  LEAN CANVAS
                 </SidebarMenuButton>
               </SidebarMenuItem>
 
