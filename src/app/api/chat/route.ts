@@ -105,7 +105,7 @@ try {
   }
 
   // 1b. Secret Backdoor: REBOOT MEMORY
-  if (userText.trim() === "REBOOT MEMORY") {
+  if (userText.toUpperCase().includes("REBOOT MEMORY")) {
     const { error: delErr } = await supabase
       .from('projects')
       .delete()
