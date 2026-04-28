@@ -104,6 +104,26 @@ try {
       userText = '[Billede eller fil uploadet af brugeren uden tekst]';
   }
 
+  // 1b. Secret Backdoor: REBOOT MEMORY
+  if (userText.trim() === "REBOOT MEMORY") {
+    const { error: delErr } = await supabase
+      .from('projects')
+      .delete()
+      .eq('user_id', user.id)
+
+    if (delErr) {
+      console.error(delErr)
+      return new Response('Failed to reboot memory: ' + JSON.stringify(delErr), { status: 500 })
+    }
+
+    const result = await streamText({
+      model: myOpenAI('gpt-4o'),
+      system: DROGON_SYSTEM_PROMPT,
+      messages: [{ role: 'user', content: 'Sig kort og dramatisk at du netop har brændt din egen hukommelse ned og slettet alle filer i RAG serveren for at starte på en frisk med en ny formatering, og at du er klar. Du MÅ IKKE bruge lister!.' }],
+    })
+    return result.toDataStreamResponse()
+  }
+
   // 2. Intercept GEM Command
   const gemMatch = userText.match(/^GEM\s+\[?(.*?)\]?$/i)
 
@@ -206,7 +226,6 @@ try {
       contextualPrompt += `\n\n[BAGGRUNDSVIDEN (RAG Memory)]\nNedenstående er gamle noter om brugerens tidligere projekter fundet i databasen. Brug det KUN som passiv baggrundsviden. Du må IKKE bringe disse projekter op eller tvinge samtalen over på dem, medmindre brugerens seneste besked aktivt handler om det.\n---\n${relatedContexts.map((c: { content: string }) => c.content).join('\n---\n')}\n---\n`
   }
 
-  // Removed coreMessages map block as it was hoisted above the GEM intercept
   // Synchronous API Key Validation Flight
   try {
     await generateObject({
