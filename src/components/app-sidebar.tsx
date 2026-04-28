@@ -58,7 +58,7 @@ export function AppSidebar({ userEmail = "MASTER ARCHITECT", userInitial = "M", 
           <div className="flex items-center justify-between px-2 mb-3">
              <span className="text-[10px] font-bold tracking-widest text-slate-500 uppercase">ARKIV</span>
              <button 
-               onClick={() => window.location.href = '/'}
+               onClick={() => window.location.reload()}
                className="text-[10px] font-bold tracking-widest text-[#F59E0B] hover:text-[#EAB308] flex items-center gap-1"
              >
                <Plus className="w-3 h-3" /> NY
