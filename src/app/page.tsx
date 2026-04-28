@@ -2,7 +2,8 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
-import { SendHorizontal, Mic, Paperclip, Cloud, Save, Zap, Star, LayoutTemplate, Trophy, Loader2, Flame } from "lucide-react";
+import { SendHorizontal, Mic, Paperclip, Cloud, Save, Zap, Star, LayoutTemplate, Trophy, Loader2, Flame, FileText, X } from "lucide-react";
+import * as mammoth from "mammoth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState } from "react";
@@ -18,44 +19,78 @@ export default function ChatPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [attachments, setAttachments] = useState<{name: string, url: string}[]>([]);
+  const [documentTexts, setDocumentTexts] = useState<{name: string, content: string}[]>([]);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
     const files = Array.from(e.target.files);
     
-    files.forEach(file => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-          
-          // Max dimension for gpt-4o vision to maintain quality while slashing file size
-          const MAX_DIMENSION = 1200;
-          if (width > height && width > MAX_DIMENSION) {
-            height = Math.round((height * MAX_DIMENSION) / width);
-            width = MAX_DIMENSION;
-          } else if (height > MAX_DIMENSION) {
-            width = Math.round((width * MAX_DIMENSION) / height);
-            height = MAX_DIMENSION;
-          }
-          
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          if (ctx) {
-            ctx.drawImage(img, 0, 0, width, height);
-            // Export as JPEG at 70% quality (reduces standard ~8MB images to ~200-400KB base64 strings)
-            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
-            setAttachments(prev => [...prev, { name: file.name, url: compressedBase64 }]);
+    for (const file of files) {
+      if (file.name.endsWith('.docx') || file.type.includes('wordprocessingml')) {
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          try {
+            const arrayBuffer = reader.result as ArrayBuffer;
+            const result = await mammoth.extractRawText({ arrayBuffer });
+            let text = result.value;
+            const CHAR_LIMIT = 30000;
+            if (text.length > CHAR_LIMIT) {
+              text = text.slice(0, CHAR_LIMIT);
+              alert(`Husk at systemet udtrækker max ~10 sider. Dokumentet "${file.name}" er blevet afkortet for at skåne dit budget.`);
+            }
+            setDocumentTexts(prev => [...prev, { name: file.name, content: text }]);
+          } catch (err) {
+            console.error("Fejl ved læsning af Word-dokument:", err);
+            alert(`Kunne ikke læse Word-dokumentet: ${file.name}`);
           }
         };
-        img.src = reader.result as string;
-      };
-      reader.readAsDataURL(file);
-    });
+        reader.readAsArrayBuffer(file);
+      } 
+      else if (file.name.endsWith('.txt') || file.name.endsWith('.csv') || file.name.endsWith('.md')) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          let text = reader.result as string;
+          const CHAR_LIMIT = 30000;
+          if (text.length > CHAR_LIMIT) {
+             text = text.slice(0, CHAR_LIMIT);
+             alert(`Husk at systemet udtrækker max ~10 sider. Dokumentet "${file.name}" er blevet afkortet for at skåne dit budget.`);
+          }
+          setDocumentTexts(prev => [...prev, { name: file.name, content: text }]);
+        };
+        reader.readAsText(file);
+      }
+      else if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+            
+            const MAX_DIMENSION = 1200;
+            if (width > height && width > MAX_DIMENSION) {
+              height = Math.round((height * MAX_DIMENSION) / width);
+              width = MAX_DIMENSION;
+            } else if (height > MAX_DIMENSION) {
+              width = Math.round((width * MAX_DIMENSION) / height);
+              height = MAX_DIMENSION;
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              ctx.drawImage(img, 0, 0, width, height);
+              const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+              setAttachments(prev => [...prev, { name: file.name, url: compressedBase64 }]);
+            }
+          };
+          img.src = reader.result as string;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
     
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
@@ -66,16 +101,22 @@ export default function ChatPage() {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!input.trim() && attachments.length === 0) return;
+    if (!input.trim() && attachments.length === 0 && documentTexts.length === 0) return;
     
+    let combinedInput = input || " ";
+    if (documentTexts.length > 0) {
+      const docString = documentTexts.map(doc => `[VEDHÆFTET DOKUMENT: ${doc.name}]\n${doc.content}\n[SLUT PÅ DOKUMENT: ${doc.name}]`).join('\n\n');
+      combinedInput = `${docString}\n\n${combinedInput}`;
+    }
+
     const inputParts: any[] = [];
-    if (input.trim()) inputParts.push({ type: "text", text: input });
+    if (combinedInput.trim()) inputParts.push({ type: "text", text: combinedInput });
     attachments.forEach(att => inputParts.push({ type: "image", image: att.url }));
 
     const payload = {
       id: crypto.randomUUID(),
       role: "user" as const,
-      content: input || " ",
+      content: combinedInput,
       parts: inputParts.length > 0 ? inputParts : undefined
     };
     
@@ -83,6 +124,7 @@ export default function ChatPage() {
     sendMessage(payload);
     setInput("");
     setAttachments([]);
+    setDocumentTexts([]);
   };
 
   useEffect(() => {
@@ -206,18 +248,22 @@ export default function ChatPage() {
       <div className="flex-none p-6 pt-2 w-full max-w-4xl mx-auto flex flex-col gap-6">
 
         {/* Attachment Previews */}
-        {attachments.length > 0 && (
-          <div className="flex gap-3 px-2 flex-wrap">
+        {(attachments.length > 0 || documentTexts.length > 0) && (
+          <div className="flex flex-wrap gap-2 px-6 pt-4">
             {attachments.map((att, i) => (
-              <div key={i} className="relative group rounded-xl overflow-hidden border border-slate-700 w-16 h-16 bg-[#161C2C]">
-                <img src={att.url} alt="upload" className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity" />
-                <button 
-                  type="button" 
-                  onClick={() => setAttachments(prev => prev.filter((_, idx) => idx !== i))}
-                  className="absolute top-1 right-1 w-4 h-4 rounded-full bg-red-900/80 hover:bg-red-500/90 flex items-center justify-center text-white text-[10px] font-bold"
-                >
-                  ×
+              <div key={i} className="relative w-16 h-16 rounded-md overflow-hidden border border-slate-700/50 group/img">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={att.url} alt={att.name} className="w-full h-full object-cover" />
+                <button type="button" onClick={() => setAttachments(prev => prev.filter((_, idx) => idx !== i))} className="absolute top-1 right-1 p-1 bg-black/50 rounded-full text-white opacity-0 group-hover/img:opacity-100 transition-opacity">
+                  <X className="w-3 h-3" />
                 </button>
+              </div>
+            ))}
+            {documentTexts.map((doc, i) => (
+              <div key={`doc-${i}`} className="flex gap-2 items-center bg-[#F59E0B]/10 pr-2 pl-3 py-1 rounded-md mb-2 h-8 border border-[#F59E0B]/20">
+                 <FileText className="w-3 h-3 text-[#F59E0B]"/>
+                 <span className="text-[10px] text-[#F59E0B] font-mono truncate max-w-[150px]">{doc.name}</span>
+                 <button type="button" onClick={() => setDocumentTexts(prev => prev.filter((_, idx) => idx !== i))} className="text-[#F59E0B]/50 hover:text-[#F59E0B] transition-colors ml-1 p-1"><X className="w-3 h-3" /></button>
               </div>
             ))}
           </div>
