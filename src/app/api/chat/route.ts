@@ -213,7 +213,7 @@ try {
   // b. Search Supabase for similar past contexts
   const { data: relatedContexts } = await supabase.rpc('match_project_vectors', {
     query_embedding: queryEmbedding.embedding,
-    match_threshold: 0.5,
+    match_threshold: 0.8,
     match_count: 3
   })
 
@@ -221,7 +221,9 @@ try {
   let contextualPrompt = `[SYSTEM NOTE: You are currently speaking directly to the user. Their preferred name is: ${fullName}. Always address them personally and respectfully in your conversation.]\n\n` + DROGON_SYSTEM_PROMPT
 
   if (relatedContexts && relatedContexts.length > 0) {
-      contextualPrompt += `\n\n[BAGGRUNDSVIDEN (RAG Memory)]\nNedenstående er gamle noter om brugerens tidligere projekter fundet i databasen. Brug det KUN som passiv baggrundsviden. Du må IKKE bringe disse projekter op eller tvinge samtalen over på dem, medmindre brugerens seneste besked aktivt handler om det.\n---\n${relatedContexts.map((c: { content: string }) => c.content).join('\n---\n')}\n---\n`
+      // Stripping all markdown (asterisks, dashes, digits) from RAG memory on-the-fly to prevent in-context LLM formatting poisoning
+      const safeContexts = relatedContexts.map((c: { content: string }) => c.content.replace(/[\*\-\d]/g, '').replace(/\[|\]|\#/g, ''));
+      contextualPrompt += `\n\n[BAGGRUNDSVIDEN (RAG Memory)]\nNedenstående er gamle noter om brugerens tidligere projekter fundet i databasen. Brug det KUN som passiv baggrundsviden. Du må IKKE bringe disse projekter op eller tvinge samtalen over på dem, medmindre brugerens seneste besked aktivt handler om det.\n---\n${safeContexts.join('\n---\n')}\n---\n`
   }
 
   // Synchronous API Key Validation Flight
