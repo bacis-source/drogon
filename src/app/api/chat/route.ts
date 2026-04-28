@@ -237,6 +237,12 @@ try {
 
   contextualPrompt += `\n\n[AKTIVT GRIT NIVEAU FOR NÆSTE SVAR]\nBrugeren har netop sat dit Grit Level til: ${gritLevel} ud af 5 for denne chat. Du SKAL tilpasse din modstand, dit pres og din tone præcis til dette niveau jf. din 'THE GRIT PROGRESSION' opskrift.`
 
+  // ULTIMATE FAILSAFE: Append negative formatting constraint to the LAST user message explicitly to override RLHF
+  const lastUserIndex = coreMessages.map((m: any) => m.role).lastIndexOf('user');
+  if (lastUserIndex !== -1 && typeof coreMessages[lastUserIndex].content === 'string') {
+      coreMessages[lastUserIndex].content += '\n\n[ABSOLUT FORMATERINGSFORBUD: Du må UNDER INGEN OMSTÆNDIGHEDER bruge nogen form for markdown-formatering! Ingen stjerner (**), ingen punktopstillinger (1., 2., -), og ingen overskrifter. Skriv dit svar som ét flydende tekstafsnit, fx som en email.]';
+  }
+
   const result = await streamText({
     model: myOpenAI('gpt-4o'),
     system: contextualPrompt,
