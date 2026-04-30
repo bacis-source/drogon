@@ -117,7 +117,23 @@ export async function POST(req: Request) {
     }
 
     const fullName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Visionæren'
-    const contextualPrompt = `[Brugernavn: ${fullName}. Grit Level: ${gritLevel}/5]\n\n` + DROGON_SYSTEM_PROMPT
+
+    // Fetch the 3 most recent projects to inject into the system prompt (Persistent Memory / RAG-light)
+    const { data: recentProjects } = await supabase
+      .from('projects')
+      .select('name, summary, tech_spec')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(3)
+
+    let projectMemory = ''
+    if (recentProjects && recentProjects.length > 0) {
+      projectMemory = `\n\nDU HAR FØLGENDE PROJEKTER GEMT I DIN HUKOMMELSE FOR DENNE BRUGER:\n` + 
+        recentProjects.map(p => `- Projekt: "${p.name}"\n  Resume: ${p.summary}\n  Tech: ${p.tech_spec}`).join('\n\n') +
+        `\n\nHvis brugeren spørger til disse projekter, VED DU ALLEREDE hvad de handler om. Du skal IKKE bede dem forklare det igen. Referer direkte til den gemte viden og gå til sagen.`
+    }
+
+    const contextualPrompt = `[Brugernavn: ${fullName}. Grit Level: ${gritLevel}/5]\n\n` + DROGON_SYSTEM_PROMPT + projectMemory
 
     // Clean execution with mathematical formatting constraints
     const result = await streamText({
