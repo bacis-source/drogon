@@ -1,18 +1,33 @@
 "use client";
 
-import { login, signup } from "./actions";
+import { login, signup, resetPassword } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ShieldAlert, User, Lock, Compass } from "lucide-react";
+import { ShieldAlert, User, Lock, Compass, CheckCircle2 } from "lucide-react";
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
+
+type AuthMode = 'login' | 'signup' | 'forgot_password';
 
 function LoginContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
+  const message = searchParams.get("message");
   
-  // Custom switch logic based on user's target UI workflow
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [mode, setMode] = useState<AuthMode>('login');
+
+  let formAction;
+  let submitText;
+  if (mode === 'signup') {
+    formAction = signup;
+    submitText = "Opret Konto";
+  } else if (mode === 'forgot_password') {
+    formAction = resetPassword;
+    submitText = "Send Nulstillingslink";
+  } else {
+    formAction = login;
+    submitText = "Start Session";
+  }
 
   return (
     <div className="min-h-screen bg-[#060913] text-slate-200 flex items-center justify-center p-4">
@@ -33,12 +48,19 @@ function LoginContent() {
 
         {error && (
           <div className="mb-6 p-4 rounded-xl bg-red-900/20 border border-red-900/50 flex items-center gap-3 text-red-400 text-sm">
-             <ShieldAlert className="w-4 h-4" />
+             <ShieldAlert className="w-4 h-4 flex-shrink-0" />
              {error}
           </div>
         )}
 
-        <form action={isSignUp ? signup : login} className="space-y-4">
+        {message && (
+          <div className="mb-6 p-4 rounded-xl bg-green-900/20 border border-green-900/50 flex items-center gap-3 text-green-400 text-sm">
+             <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+             {message}
+          </div>
+        )}
+
+        <form action={formAction} className="space-y-4">
           <div className="relative group">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500 group-focus-within:text-[#F59E0B] transition-colors">
               <User className="h-5 w-5" />
@@ -53,7 +75,7 @@ function LoginContent() {
             />
           </div>
 
-          {isSignUp && (
+          {mode === 'signup' && (
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500 group-focus-within:text-[#F59E0B] transition-colors">
                 <User className="h-5 w-5" />
@@ -64,47 +86,57 @@ function LoginContent() {
                 type="text" 
                 placeholder="Fornavn (Hvordan skal Drogon tiltale dig?)"
                 className="bg-[#050810] border-0 focus-visible:ring-1 focus-visible:ring-[#F59E0B]/50 text-white placeholder:text-slate-500 h-14 pl-12 rounded-xl text-base shadow-inner"
-                required={isSignUp}
+                required={mode === 'signup'}
               />
             </div>
           )}
           
-          <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500 group-focus-within:text-[#F59E0B] transition-colors">
-              <Lock className="h-5 w-5" />
+          {mode !== 'forgot_password' && (
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500 group-focus-within:text-[#F59E0B] transition-colors">
+                <Lock className="h-5 w-5" />
+              </div>
+              <Input 
+                id="password" 
+                name="password" 
+                type="password" 
+                placeholder="Adgangskode"
+                className="bg-[#050810] border-0 focus-visible:ring-1 focus-visible:ring-[#F59E0B]/50 text-white placeholder:text-slate-500 h-14 pl-12 rounded-xl text-base shadow-inner"
+                required
+              />
             </div>
-            <Input 
-              id="password" 
-              name="password" 
-              type="password" 
-              placeholder="Adgangskode"
-              className="bg-[#050810] border-0 focus-visible:ring-1 focus-visible:ring-[#F59E0B]/50 text-white placeholder:text-slate-500 h-14 pl-12 rounded-xl text-base shadow-inner"
-              required 
-            />
-          </div>
+          )}
 
-          <div className="flex justify-end pt-1 pb-4">
-            <a href="#" className="text-xs font-semibold text-slate-500 hover:text-slate-400 transition-colors uppercase tracking-wider">
-              Glemt adgangskode?
-            </a>
-          </div>
+          {mode === 'login' && (
+            <div className="flex justify-end pt-1 pb-4">
+              <button 
+                type="button" 
+                onClick={() => setMode('forgot_password')}
+                className="text-xs font-semibold text-slate-500 hover:text-slate-400 transition-colors uppercase tracking-wider"
+              >
+                Glemt adgangskode?
+              </button>
+            </div>
+          )}
+
+          {mode !== 'login' && <div className="pb-4"></div>}
 
           <Button 
-            key={isSignUp ? "signup" : "login"}
+            key={mode}
             type="submit"
             className="w-full bg-[#F59E0B] hover:bg-[#EAB308] text-[#050810] font-bold text-base h-14 rounded-xl shadow-[0_0_15px_rgba(245,158,11,0.2)] transition-all flex items-center justify-center gap-2"
           >
-            {isSignUp ? "Opret Konto" : "Start Session"} 
+            {submitText}
             <span className="text-xl leading-none -mt-1 hover:translate-x-1 duration-200">→</span>
           </Button>
           
           <div className="text-center pt-6 pb-4">
             <button 
               type="button" 
-              onClick={() => setIsSignUp(!isSignUp)}
+              onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
               className="text-xs font-semibold text-slate-400 hover:text-[#F59E0B] transition-colors uppercase tracking-wider"
             >
-              {isSignUp ? "allerede visionær? log ind her" : "ny visionær? opret en konto her"}
+              {mode === 'login' ? "ny visionær? opret en konto her" : "allerede visionær? log ind her"}
             </button>
           </div>
         </form>
