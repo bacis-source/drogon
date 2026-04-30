@@ -98,20 +98,51 @@ export async function POST(req: Request) {
 
       const projectData = extraction.object
 
-      const { data: projectRow, error: pErr } = await supabase
+      // Check if project already exists for this user
+      const { data: existingProject } = await supabase
         .from('projects')
-        .insert({
-          name: projectName,
-          summary: projectData.summary,
-          business_model: projectData.business_model,
-          tech_spec: projectData.tech_spec,
-          ip_strategy: projectData.ip_strategy,
-          user_id: user.id
-        })
         .select('id')
+        .eq('name', projectName)
+        .eq('user_id', user.id)
         .single()
 
-      if (pErr) return new Response('DB Error: ' + pErr.message, { status: 500 })
+      let projectId;
+
+      if (existingProject) {
+        // Update existing project
+        const { error: pErr } = await supabase
+          .from('projects')
+          .update({
+            summary: projectData.summary,
+            business_model: projectData.business_model,
+            tech_spec: projectData.tech_spec,
+            ip_strategy: projectData.ip_strategy,
+          })
+          .eq('id', existingProject.id)
+          
+        if (pErr) return new Response('DB Error: ' + pErr.message, { status: 500 })
+        projectId = existingProject.id
+        
+        // Delete old vectors so we don't get duplicates in RAG
+        await supabase.from('project_vectors').delete().eq('project_id', projectId)
+      } else {
+        // Insert new project
+        const { data: projectRow, error: pErr } = await supabase
+          .from('projects')
+          .insert({
+            name: projectName,
+            summary: projectData.summary,
+            business_model: projectData.business_model,
+            tech_spec: projectData.tech_spec,
+            ip_strategy: projectData.ip_strategy,
+            user_id: user.id
+          })
+          .select('id')
+          .single()
+
+        if (pErr) return new Response('DB Error: ' + pErr.message, { status: 500 })
+        projectId = projectRow.id
+      }
 
       const embeddedContent = `Projekt Navn: ${projectName}\nResume: ${projectData.summary}\nForretningsmodel: ${projectData.business_model}\nTeknisk Spec: ${projectData.tech_spec}\nIP Strategi: ${projectData.ip_strategy}`
 
@@ -123,7 +154,7 @@ export async function POST(req: Request) {
       const { error: vErr } = await supabase
         .from('project_vectors')
         .insert({
-          project_id: projectRow.id,
+          project_id: projectId,
           content: embeddedContent,
           embedding: embeddingResponse.embedding,
           metadata: { ...projectData }
