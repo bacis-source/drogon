@@ -108,21 +108,30 @@ export function AppSidebar({ userEmail = "MASTER ARCHITECT", userInitial = "M", 
               </SidebarMenuItem>
 
               <SidebarMenuItem>
-                <SidebarMenuButton className="w-full hover:bg-slate-800/50 text-slate-400 rounded-xl h-10 justify-start font-bold uppercase tracking-wider text-xs flex items-center gap-3 transition-colors">
+                <SidebarMenuButton 
+                  onClick={() => router.push('/architecture')}
+                  className={`w-full hover:bg-slate-800/50 rounded-xl h-10 justify-start font-bold uppercase tracking-wider text-xs flex items-center gap-3 transition-colors ${pathname === '/architecture' ? 'bg-blue-900/20 text-blue-400 border-l-2 border-blue-500' : 'text-slate-400 hover:text-blue-300'}`}
+                >
                   <Compass className="w-4 h-4 ml-1" />
                   ARKITEKTUR
                 </SidebarMenuButton>
               </SidebarMenuItem>
 
               <SidebarMenuItem>
-                <SidebarMenuButton className="w-full hover:bg-slate-800/50 text-slate-400 rounded-xl h-10 justify-start font-bold uppercase tracking-wider text-xs flex items-center gap-3 transition-colors">
+                <SidebarMenuButton 
+                  onClick={() => router.push('/execution')}
+                  className={`w-full hover:bg-slate-800/50 rounded-xl h-10 justify-start font-bold uppercase tracking-wider text-xs flex items-center gap-3 transition-colors ${pathname === '/execution' ? 'bg-emerald-900/20 text-emerald-400 border-l-2 border-emerald-500' : 'text-slate-400 hover:text-emerald-300'}`}
+                >
                   <CheckSquare className="w-4 h-4 ml-1" />
                   EXECUTION
                 </SidebarMenuButton>
               </SidebarMenuItem>
               
               <SidebarMenuItem>
-                <SidebarMenuButton className="w-full hover:bg-slate-800/50 text-slate-400 rounded-xl h-10 justify-start font-bold uppercase tracking-wider text-xs flex items-center gap-3 transition-colors">
+                <SidebarMenuButton 
+                  onClick={() => router.push('/documents')}
+                  className={`w-full hover:bg-slate-800/50 rounded-xl h-10 justify-start font-bold uppercase tracking-wider text-xs flex items-center gap-3 transition-colors ${pathname === '/documents' ? 'bg-purple-900/20 text-purple-400 border-l-2 border-purple-500' : 'text-slate-400 hover:text-purple-300'}`}
+                >
                   <FileText className="w-4 h-4 ml-1" />
                   DOKUMENTER
                 </SidebarMenuButton>
@@ -134,7 +143,10 @@ export function AppSidebar({ userEmail = "MASTER ARCHITECT", userInitial = "M", 
 
       {/* 3. Footer */}
       <SidebarFooter className="p-6 pt-4 gap-3">
-        <div className="w-full bg-[#1A1525] border border-red-900/30 rounded-xl p-3 flex items-center gap-3 cursor-pointer hover:bg-[#1E182A] transition-colors">
+        <div 
+          onClick={() => router.push('/pitch')}
+          className={`w-full bg-[#1A1525] border ${pathname === '/pitch' ? 'border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)]' : 'border-red-900/30'} rounded-xl p-3 flex items-center gap-3 cursor-pointer hover:bg-[#1E182A] transition-colors`}
+        >
           <Trophy className="w-4 h-4 text-red-500" />
           <span className="text-[11px] font-bold tracking-widest text-red-500 uppercase">DRAGONS DEN</span>
         </div>

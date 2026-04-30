@@ -7,6 +7,7 @@ import * as mammoth from "mammoth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 
 export default function ChatPage() {
   const [gritLevel, setGritLevel] = useState<number>(1);
@@ -306,22 +307,22 @@ export default function ChatPage() {
 
         {/* Toolbar Links */}
         <div className="flex justify-center items-center gap-8 pb-4">
-          <button className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase hover:opacity-80 transition-opacity">
+          <Link href="/pitch" className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase hover:opacity-80 transition-opacity">
             <Star className="w-4 h-4 text-[#F59E0B]" />
             <span className="text-[#F59E0B]">INVESTOR PAKKE</span>
-          </button>
-          <button className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase hover:opacity-80 transition-opacity text-blue-400">
+          </Link>
+          <Link href="/architecture" className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase hover:opacity-80 transition-opacity text-blue-400">
             <LayoutTemplate className="w-4 h-4" />
             TEKNISK KRAVSPEC
-          </button>
-          <button className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase hover:opacity-80 transition-opacity text-red-500">
+          </Link>
+          <Link href="/pitch" className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase hover:opacity-80 transition-opacity text-red-500">
             <Trophy className="w-4 h-4" />
             DRAGONS DEN
-          </button>
-          <button className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase hover:opacity-80 transition-opacity text-[#F59E0B]">
-            <Zap className="w-4 h-4" />
-            STATUS
-          </button>
+          </Link>
+          <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase opacity-50 cursor-help" title="System Monitor">
+            <Zap className="w-4 h-4 text-[#F59E0B]" />
+            <span className="text-[#F59E0B]">STATUS ONLINE</span>
+          </div>
         </div>
       </div>
     </div>
