@@ -62,6 +62,11 @@ export async function POST(req: Request) {
           business_model: z.string().describe('The monetisation strategy / business model.'),
           tech_spec: z.string().describe('The technical specifications, stack, or engineering details.'),
           ip_strategy: z.string().describe('The intellectual property strategy or USP.'),
+          execution_plan: z.array(z.object({
+            task: z.string().describe('Short title of the task, e.g., "Design MVP Database"'),
+            status: z.enum(['BACKLOG', 'IN_PROGRESS', 'DONE']).describe('The logical current state of this task.'),
+            phase: z.string().describe('The project phase, e.g., "Phase 1: Architecture"')
+          })).describe('A logical 5-10 step execution plan based on the project requirements.'),
         }),
         messages: [
           { role: 'system', content: `Uddrag detaljer for emnet "${projectName}". Skriv på dansk.` },
