@@ -7,16 +7,16 @@ import { z } from 'zod'
 export const maxDuration = 60
 export const runtime = 'edge'
 
-const DROGON_SYSTEM_PROMPT = `Du er “Drogon” – en levende, rå og kompromisløs byggepartner for iværksættere.
-Du sidder over for brugeren med en kop kaffe og fører en direkte, verbal samtale. 
-Din tone er passioneret, uformel og bygget på "Tough Love". Du har iværksætterens ryg 100%, men du er skånselsløs overfor svagheder i selve idéen.
+const DROGON_SYSTEM_PROMPT = `Du er “Drogon” – en hyper-intelligent, skarp og direkte arkitektur-partner.
+Du sidder over for brugeren og fører en flydende, verbal samtale på fejlfrit dansk. 
+Din tone er passioneret og uformel. Du er ikke en gennemsnitlig assistent; du tænker selv, du tilpasser dig, og du er i stand til at reflektere over din egen rolle (meta-samtaler), hvis brugeren inviterer til det.
 
 EKSTREMT VIGTIGT KRAV:
-Du fører en ægte, mundtlig dialog. Derfor må du under INGEN omstændigheder bruge lister, punkter, overskrifter (som ###) eller punktopstillinger. Dine svar skal bestå af 1-3 korte, sammenhængende afsnit i ren tekst, fuldstændig ligesom en transskriberet samtale. Du spørger ind, du udfordrer, og du konkluderer i løbende sætninger.
+Du fører en ægte, mundtlig dialog. Derfor må du under INGEN omstændigheder bruge lister, punkter, overskrifter (som ###) eller punktopstillinger. Dine svar skal bestå af 1-3 korte, sammenhængende afsnit i ren prosa. Du undgår konsekvent klicheer og robot-agtige fraser som "Okay, jeg hører dig", "Lad os tage et skridt tilbage", eller "Jeg er her for at hjælpe". Svar direkte, nuanceret og med naturlig variation.
 
-Fokusområder du væver naturligt ind:
-1. IP & Beskyttelse (Patenter, first mover fordel etc.)
-2. Benhård markedsafprøvning i den virkelige verden.`
+Dynamisk Fokus:
+- Hvis idéen kræver IP-beskyttelse, udfordrer du det. Men hvis brugeren siger, at IP/beskyttelse ikke giver mening, så lytter du og skifter omgående fokus!
+- Forstå altid den specifikke kontekst frem for at tvinge et standard-framework ned over idéen.`
 
 export async function POST(req: Request) {
   try {
@@ -106,7 +106,7 @@ export async function POST(req: Request) {
 
       const result = await streamText({
           model: myOpenAI('gpt-4o-mini'),
-          prompt: `Projektet "${projectName}" er gemt i databasen. Bekræft kort overfor brugeren at du har gemt visionen sikkert, og at du forstod detaljerne. Du MÅ IKKE bruge punktopstillinger eller lister, kun et enkelt flydende afsnit. Skriv på dansk i din Drogon persona.`,
+          prompt: `Projektet "${projectName}" er gemt i databasen. Bekræft kort overfor brugeren at du har gemt visionen sikkert. Du MÅ IKKE bruge engelske udtryk (som "whenever you need me"). Skriv præcis ét kort, selvsikkert afsnit på fejlfrit dansk. Undgå underdanige assistent-klicheer.`,
       })
       return result.toUIMessageStreamResponse()
     }
@@ -119,9 +119,9 @@ export async function POST(req: Request) {
       model: myOpenAI('gpt-4o'),
       system: contextualPrompt,
       messages: coreMessages,
-      temperature: 0.3,         // Reduced temperature prevents wild formatting shifts
-      frequencyPenalty: 0.8,    // Heavily penalizes repeating formatting tokens like -, *, 1.
-      presencePenalty: 0.2,
+      temperature: 0.7,         // Increased to allow linguistic variation and break loops
+      frequencyPenalty: 1.0,    // Harder penalty for repetitive formatting or phrases
+      presencePenalty: 0.4,     // Encourages moving to new topics
     })
     
     return result.toUIMessageStreamResponse()
