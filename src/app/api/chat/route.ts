@@ -242,6 +242,12 @@ try {
 
   contextualPrompt += `\n\n[AKTIVT GRIT NIVEAU FOR NÆSTE SVAR]\nBrugeren har netop sat dit Grit Level til: ${gritLevel} ud af 5 for denne chat. Du SKAL tilpasse din modstand, dit pres og din tone præcis til dette niveau jf. din 'THE GRIT PROGRESSION' opskrift.`
 
+  // Inject a final system message to force compliance on formatting. The model pays the most attention to the last message.
+  coreMessages.push({
+    role: 'system',
+    content: 'EKSTREMT VIGTIGT: Dit næste svar MÅ KUN bestå af ét til to korte, flydende afsnit (ren prosa). DU MÅ ABSOLUT IKKE BRUGE NOGEN FORM FOR LISTER, NUMRE (1., 2., 3.), BULLETS (-), ELLER STJERNER (**). Skriv organisk, som om vi står over for hinanden og taler sammen. Opstil ALDRIG trin eller lister!'
+  });
+
   const result = await streamText({
     model: myOpenAI('gpt-4o'),
     system: contextualPrompt,
