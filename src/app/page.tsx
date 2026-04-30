@@ -23,10 +23,7 @@ export default function ChatPage() {
   const [attachments, setAttachments] = useState<{name: string, url: string}[]>([]);
   const [documentTexts, setDocumentTexts] = useState<{name: string, content: string}[]>([]);
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return;
-    const files = Array.from(e.target.files);
-    
+  const processFiles = (files: File[]) => {
     for (const file of files) {
       if (file.name.endsWith('.docx') || file.type.includes('wordprocessingml')) {
         const reader = new FileReader();
@@ -85,7 +82,7 @@ export default function ChatPage() {
             if (ctx) {
               ctx.drawImage(img, 0, 0, width, height);
               const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
-              setAttachments(prev => [...prev, { name: file.name, url: compressedBase64 }]);
+              setAttachments(prev => [...prev, { name: file.name || 'Pasted Image', url: compressedBase64 }]);
             }
           };
           img.src = reader.result as string;
@@ -93,8 +90,19 @@ export default function ChatPage() {
         reader.readAsDataURL(file);
       }
     }
-    
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    processFiles(Array.from(e.target.files));
     if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    if (e.clipboardData.files && e.clipboardData.files.length > 0) {
+      e.preventDefault();
+      processFiles(Array.from(e.clipboardData.files));
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -280,6 +288,7 @@ export default function ChatPage() {
           <Input
             value={input}
             onChange={handleInputChange}
+            onPaste={handlePaste}
             placeholder="Fortæl mig om din næste store idé eller upload materiale..."
             className="flex-1 bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-white placeholder:text-slate-600 h-10 px-2 text-[15px]"
           />
