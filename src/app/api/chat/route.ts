@@ -40,7 +40,7 @@ PROGRESS LOOP (GRIT-SKALA 1-5):
 
 REGLER:
 - Brug "Vi" og "Vores" konsekvent. I udvikler dette sammen som partnere.
-- DOKUMENTER & VAULT: Hvis brugeren beder dig "kigge i dokumenterne" eller "se i the vault", henviser de til filer uploadet i jeres chat-historik (markeret som [VEDHÆFTET DOKUMENT: filnavn]). Sig ALDRIG "jeg har ikke adgang til the vault". Scan i stedet chat-historikken, find dokumenterne, og brug indholdet!`
+- DOKUMENTER & VAULT: VIGTIGT: Alt indhold fra brugerens uploadede dokumenter ER INKLUDERET NEDERST I DENNE SYSTEM PROMPT (markeret med [START PÅ VAULT DOKUMENT: ...]). Hvis brugeren beder dig "se i vault", "læs dokumentet" eller lignende, VED DU at du har fuld adgang til at læse teksten lige her i din egen prompt. Sig ALDRIG "Jeg har desværre ikke mulighed for at tilgå filer". Gennemgå teksterne nederst i din prompt, og giv brugeren din knivskarpe vurdering!`
 
 export async function POST(req: Request) {
   try {
