@@ -225,19 +225,34 @@ export async function POST(req: Request) {
     // Fetch the 3 most recent projects to inject into the system prompt (Persistent Memory / RAG-light)
     const { data: recentProjects } = await supabase
       .from('projects')
-      .select('name, summary, tech_spec')
+      .select('id, name, summary, tech_spec')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(3)
 
     let projectMemory = ''
+    let vaultMemory = ''
+    
     if (recentProjects && recentProjects.length > 0) {
       projectMemory = `\n\nDU HAR FØLGENDE PROJEKTER GEMT I DIN HUKOMMELSE FOR DENNE BRUGER:\n` + 
         recentProjects.map(p => `- Projekt: "${p.name}"\n  Resume: ${p.summary}\n  Tech: ${p.tech_spec}`).join('\n\n') +
         `\n\nHvis brugeren spørger til disse projekter, VED DU ALLEREDE hvad de handler om. Du skal IKKE bede dem forklare det igen. Referer direkte til den gemte viden og gå til sagen.`
+
+      // Load documents from Vault for the most recent project
+      const activeProject = recentProjects[0]
+      const { data: vaultDocs } = await supabase
+        .from('vault_documents')
+        .select('filename, content')
+        .eq('project_id', activeProject.id)
+
+      if (vaultDocs && vaultDocs.length > 0) {
+        vaultMemory = `\n\nBRUGEREN HAR FØLGENDE DOKUMENTER UPLOADET TIL DERES VAULT FOR DET AKTIVE PROJEKT ("${activeProject.name}"):\n` +
+          vaultDocs.map(d => `[START PÅ VAULT DOKUMENT: ${d.filename}]\n${d.content}\n[SLUT PÅ VAULT DOKUMENT: ${d.filename}]`).join('\n\n') +
+          `\n\nBrug disse tekster proaktivt, hvis brugeren beder dig læse deres uploadede filer eller kigge i the vault.`
+      }
     }
 
-    const contextualPrompt = `[Brugernavn: ${fullName}. Grit Level: ${gritLevel}/5]\n\n` + DROGON_SYSTEM_PROMPT + projectMemory
+    const contextualPrompt = `[Brugernavn: ${fullName}. Grit Level: ${gritLevel}/5]\n\n` + DROGON_SYSTEM_PROMPT + projectMemory + vaultMemory
 
     const result = await streamText({
       model: myOpenAI('gpt-4o'),
