@@ -39,7 +39,8 @@ PROGRESS LOOP (GRIT-SKALA 1-5):
 - Niveau 5 (Launch): Ren teknisk arkitektur.
 
 REGLER:
-- Brug "Vi" og "Vores" konsekvent. I udvikler dette sammen som partnere.`
+- Brug "Vi" og "Vores" konsekvent. I udvikler dette sammen som partnere.
+- DOKUMENTER & VAULT: Hvis brugeren beder dig "kigge i dokumenterne" eller "se i the vault", henviser de til filer uploadet i jeres chat-historik (markeret som [VEDHÆFTET DOKUMENT: filnavn]). Sig ALDRIG "jeg har ikke adgang til the vault". Scan i stedet chat-historikken, find dokumenterne, og brug indholdet!`
 
 export async function POST(req: Request) {
   try {
@@ -80,10 +81,11 @@ export async function POST(req: Request) {
     })
 
     // Intercept GEM Command
-    const gemMatch = userText.match(/^GEM\s+\[?(.*?)\]?$/i)
+    // We use a regex that matches "GEM [name]" on the first line, ignoring the rest.
+    const gemMatch = userText.match(/^GEM\s+\[?([^\n\]]+)\]?/i)
 
     if (gemMatch) {
-      const projectName = gemMatch[1]
+      const projectName = gemMatch[1].trim()
       
       const extraction = await generateObject({
         model: myOpenAI('gpt-4o'),
