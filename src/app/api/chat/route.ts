@@ -92,6 +92,17 @@ export async function POST(req: Request) {
           business_model: z.string().describe('The monetisation strategy / business model.'),
           tech_spec: z.string().describe('The technical specifications, stack, or engineering details.'),
           ip_strategy: z.string().describe('The intellectual property strategy or USP.'),
+          lean_canvas: z.object({
+            problem: z.string().describe('Top 3 problems the users face.'),
+            solution: z.string().describe('Top 3 features of the solution.'),
+            key_metrics: z.string().describe('Key activities you measure.'),
+            uvp: z.string().describe('Unique Value Proposition: Single, clear, compelling message.'),
+            unfair_advantage: z.string().describe('Can’t be easily copied or bought.'),
+            channels: z.string().describe('Path to customers.'),
+            customer_segments: z.string().describe('Target customers.'),
+            cost_structure: z.string().describe('Customer Acquisition costs, distribution costs, hosting, etc.'),
+            revenue_streams: z.string().describe('Revenue model, life time value, gross margin.')
+          }).describe('Complete 9-block Lean Canvas.'),
           execution_plan: z.array(z.object({
             task: z.string().describe('Short title of the task, e.g., "Design MVP Database"'),
             status: z.enum(['BACKLOG', 'IN_PROGRESS', 'DONE']).describe('The logical current state of this task.'),
@@ -99,7 +110,7 @@ export async function POST(req: Request) {
           })).describe('A logical 5-10 step execution plan based on the project requirements.'),
         }),
         messages: [
-          { role: 'system', content: `Uddrag detaljer for emnet "${projectName}". Skriv på dansk.` },
+          { role: 'system', content: `Uddrag detaljer for emnet "${projectName}". Udfyld hele Lean Canvas strukturen dybdegående. Skriv KUN på dansk.` },
           ...coreMessages.slice(0, -1)
         ]
       })
@@ -125,6 +136,7 @@ export async function POST(req: Request) {
             business_model: projectData.business_model,
             tech_spec: projectData.tech_spec,
             ip_strategy: projectData.ip_strategy,
+            lean_canvas: projectData.lean_canvas
           })
           .eq('id', existingProject.id)
           
@@ -143,6 +155,7 @@ export async function POST(req: Request) {
             business_model: projectData.business_model,
             tech_spec: projectData.tech_spec,
             ip_strategy: projectData.ip_strategy,
+            lean_canvas: projectData.lean_canvas,
             user_id: user.id
           })
           .select('id')
