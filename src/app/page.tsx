@@ -40,7 +40,7 @@ export default function ChatPage() {
 
   const processFiles = (files: File[]) => {
     for (const file of files) {
-      if (file.name.endsWith('.docx') || file.type.includes('wordprocessingml')) {
+      if (file.name.endsWith('.docx') || file.name.endsWith('.pdf') || file.type.includes('wordprocessingml') || file.type === 'application/pdf') {
         const formData = new FormData();
         formData.append('file', file);
         
@@ -51,8 +51,8 @@ export default function ChatPage() {
         .then(res => res.json())
         .then(data => {
           if (data.error) {
-             console.error("Fejl ved læsning af Word-dokument:", data.error);
-             alert(`Kunne ikke læse Word-dokumentet: ${file.name}`);
+             console.error(`Fejl ved læsning af dokument:`, data.error);
+             alert(`Kunne ikke læse dokumentet: ${file.name}`);
           } else {
              const CHAR_LIMIT = 30000;
              let text = data.text;
@@ -63,7 +63,7 @@ export default function ChatPage() {
           }
         })
         .catch(err => {
-          console.error("Netværksfejl ved parsing af Word-dokument:", err);
+          console.error("Netværksfejl ved parsing af dokument:", err);
           alert(`Kunne ikke forbinde til serveren for at læse: ${file.name}`);
         });
       } 
@@ -89,7 +89,7 @@ export default function ChatPage() {
             let width = img.width;
             let height = img.height;
             
-            const MAX_DIMENSION = 1200;
+            const MAX_DIMENSION = 1920;
             if (width > height && width > MAX_DIMENSION) {
               height = Math.round((height * MAX_DIMENSION) / width);
               width = MAX_DIMENSION;
@@ -103,7 +103,7 @@ export default function ChatPage() {
             const ctx = canvas.getContext('2d');
             if (ctx) {
               ctx.drawImage(img, 0, 0, width, height);
-              const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+              const compressedBase64 = canvas.toDataURL('image/webp', 0.9);
               setAttachments(prev => [...prev, { name: file.name || 'Pasted Image', url: compressedBase64 }]);
             }
           };
@@ -336,7 +336,7 @@ export default function ChatPage() {
             type="file" 
             ref={fileInputRef} 
             onChange={handleFileSelect} 
-            accept="image/*" 
+            accept="image/*,.pdf,.docx,.txt,.csv,.md" 
             multiple 
             className="hidden" 
           />

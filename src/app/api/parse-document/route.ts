@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as mammoth from 'mammoth';
+import pdfParse from 'pdf-parse';
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,10 +13,16 @@ export async function POST(req: NextRequest) {
 
     // Read the file buffer
     const buffer = await file.arrayBuffer();
-
-    // Parse the document using mammoth
-    const result = await mammoth.extractRawText({ buffer: Buffer.from(buffer) });
-    let text = result.value;
+    
+    let text = '';
+    if (file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf') {
+       const parsed = await pdfParse(Buffer.from(buffer));
+       text = parsed.text;
+    } else {
+       // Parse the document using mammoth
+       const result = await mammoth.extractRawText({ buffer: Buffer.from(buffer) });
+       text = result.value;
+    }
 
     // Truncate to save tokens and prevent huge payloads
     const CHAR_LIMIT = 30000;
