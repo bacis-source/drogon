@@ -103,6 +103,14 @@ export async function POST(req: Request) {
             cost_structure: z.string().describe('Customer Acquisition costs, distribution costs, hosting, etc.'),
             revenue_streams: z.string().describe('Revenue model, life time value, gross margin.')
           }).describe('Complete 9-block Lean Canvas.'),
+          tech_architecture: z.object({
+            frontend: z.string().describe('Frontend frameworks, UI libraries, state management.'),
+            backend: z.string().describe('Backend logic, APIs, server architecture.'),
+            database: z.string().describe('Databases, storage solutions, ORMs.'),
+            infrastructure: z.string().describe('Hosting, CI/CD, cloud providers.'),
+            security: z.string().describe('Authentication, authorization, data protection.'),
+            system_flow: z.string().describe('A brief explanation of how data flows through the system.')
+          }).describe('Technical Architecture Blueprint.'),
           execution_plan: z.array(z.object({
             task: z.string().describe('Short title of the task, e.g., "Design MVP Database"'),
             status: z.enum(['BACKLOG', 'IN_PROGRESS', 'DONE']).describe('The logical current state of this task.'),
@@ -110,7 +118,7 @@ export async function POST(req: Request) {
           })).describe('A logical 5-10 step execution plan based on the project requirements.'),
         }),
         messages: [
-          { role: 'system', content: `Uddrag detaljer for emnet "${projectName}". Udfyld hele Lean Canvas strukturen dybdegående. Skriv KUN på dansk.` },
+          { role: 'system', content: `Uddrag detaljer for emnet "${projectName}". Udfyld hele Lean Canvas og Arkitektur strukturen dybdegående. Skriv KUN på dansk.` },
           ...coreMessages.slice(0, -1)
         ]
       })
@@ -136,7 +144,8 @@ export async function POST(req: Request) {
             business_model: projectData.business_model,
             tech_spec: projectData.tech_spec,
             ip_strategy: projectData.ip_strategy,
-            lean_canvas: projectData.lean_canvas
+            lean_canvas: projectData.lean_canvas,
+            tech_architecture: projectData.tech_architecture
           })
           .eq('id', existingProject.id)
           
@@ -156,6 +165,7 @@ export async function POST(req: Request) {
             tech_spec: projectData.tech_spec,
             ip_strategy: projectData.ip_strategy,
             lean_canvas: projectData.lean_canvas,
+            tech_architecture: projectData.tech_architecture,
             user_id: user.id
           })
           .select('id')

@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { Cpu, Server, Shield, Cloud, ArrowRight, LayoutTemplate } from "lucide-react";
+import { Cpu, Server, Shield, Cloud, ArrowRight, Database, MonitorSmartphone, GitBranch, Zap, Layers } from "lucide-react";
 import Link from "next/link";
+import { EditableArchitectureBlock } from "./editable-block";
 
 export default async function ArchitecturePage() {
   const supabase = await createClient();
@@ -38,55 +39,114 @@ export default async function ArchitecturePage() {
     );
   }
 
+  const techArch = project.tech_architecture || {};
+
   return (
-    <div className="flex-1 h-full overflow-y-auto bg-[#0A0F1E] nice-scrollbar">
+    <div className="flex-1 h-full overflow-y-auto bg-[#050810] nice-scrollbar flex flex-col">
       {/* Header */}
-      <header className="p-8 pb-4 border-b border-slate-800/60 bg-[#0B0F19]/50 sticky top-0 z-10 backdrop-blur-md">
+      <header className="p-8 pb-4 border-b border-blue-900/30 bg-[#070B14]/80 sticky top-0 z-20 backdrop-blur-md flex-none">
         <div className="flex items-center gap-3 mb-2 opacity-80">
-          <Cpu className="w-4 h-4 text-blue-400" />
-          <span className="text-[10px] font-bold tracking-widest text-blue-400 uppercase">SYSTEM ARKITEKTUR</span>
+          <Cpu className="w-4 h-4 text-blue-500" />
+          <span className="text-[10px] font-bold tracking-widest text-blue-500 uppercase">THE TECHNICAL BLUEPRINT</span>
         </div>
-        <h1 className="text-4xl font-extrabold text-white tracking-tight uppercase">{project.name}</h1>
+        <div className="flex justify-between items-end">
+          <h1 className="text-4xl font-extrabold text-white tracking-tight uppercase drop-shadow-[0_0_15px_rgba(59,130,246,0.2)]">{project.name}</h1>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-950/40 border border-blue-800/50">
+             <Zap className="w-3.5 h-3.5 text-blue-400" />
+             <span className="text-[9px] font-bold tracking-widest text-blue-300 uppercase">AI Synced</span>
+          </div>
+        </div>
       </header>
 
-      {/* Content */}
-      <div className="p-8 max-w-5xl mx-auto space-y-8">
+      {/* Grid Content */}
+      <div className="flex-1 p-6 lg:p-8 min-h-0">
         
-        {/* Top: Tech Spec */}
-        <div className="bg-[#111626] border border-blue-900/40 rounded-2xl p-8 shadow-[0_0_30px_rgba(59,130,246,0.05)] relative overflow-hidden group">
-          <div className="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
-               <Cpu className="w-6 h-6 text-blue-400" />
+        {/* Overall Tech Spec Summary (Legacy support but still useful) */}
+        <div className="bg-[#0B101D] border border-blue-900/30 rounded-2xl p-6 shadow-[0_0_30px_rgba(59,130,246,0.03)] relative overflow-hidden mb-8">
+          <div className="absolute top-0 left-0 w-1 h-full bg-blue-600"></div>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-blue-600/10 flex items-center justify-center">
+               <Layers className="w-5 h-5 text-blue-500" />
             </div>
-            <h2 className="text-xl font-bold text-slate-200 uppercase tracking-widest">Teknisk Kravspecifikation</h2>
+            <h2 className="text-sm font-bold text-slate-300 uppercase tracking-widest">System Overview</h2>
           </div>
-          <p className="text-slate-300 leading-relaxed text-lg pl-1 whitespace-pre-wrap">
+          <p className="text-slate-400 leading-relaxed text-sm pl-1 whitespace-pre-wrap font-mono">
             {project.tech_spec === 'Ikke relevant for denne type samtale.' ? 
-              <span className="italic opacity-50">Ingen teknisk specifikation er genereret endnu. Vend tilbage til Drogon for at uddybe stacken.</span> : 
+              <span className="italic opacity-50">Ingen overordnet specifikation er genereret.</span> : 
               project.tech_spec}
           </p>
         </div>
 
-        {/* Blueprint placeholders */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-[#111626] border border-slate-800/80 rounded-2xl p-6 flex flex-col items-center justify-center text-center hover:border-slate-700 transition-colors h-48 cursor-not-allowed">
-             <Server className="w-8 h-8 text-slate-600 mb-3" />
-             <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-1">Infrastruktur</h3>
-             <p className="text-[10px] text-slate-600 font-bold uppercase tracking-wider">Afventer Diagrammer</p>
+        {/* The Technical Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 h-full min-h-[600px] auto-rows-fr">
+          
+          {/* Frontend */}
+          <div className="col-span-1">
+            <EditableArchitectureBlock 
+              projectId={project.id}
+              blockKey="frontend"
+              title="Frontend Stack"
+              content={techArch.frontend || ''}
+              icon={<MonitorSmartphone className="w-4 h-4 text-cyan-400" />}
+            />
           </div>
-          <div className="bg-[#111626] border border-slate-800/80 rounded-2xl p-6 flex flex-col items-center justify-center text-center hover:border-slate-700 transition-colors h-48 cursor-not-allowed">
-             <Cloud className="w-8 h-8 text-slate-600 mb-3" />
-             <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-1">Cloud Deployment</h3>
-             <p className="text-[10px] text-slate-600 font-bold uppercase tracking-wider">Afventer Miljø Opsætning</p>
-          </div>
-          <div className="bg-[#111626] border border-slate-800/80 rounded-2xl p-6 flex flex-col items-center justify-center text-center hover:border-slate-700 transition-colors h-48 cursor-not-allowed">
-             <Shield className="w-8 h-8 text-slate-600 mb-3" />
-             <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-1">Sikkerheds-Protocol</h3>
-             <p className="text-[10px] text-slate-600 font-bold uppercase tracking-wider">Afventer Audit</p>
-          </div>
-        </div>
 
+          {/* Backend */}
+          <div className="col-span-1">
+            <EditableArchitectureBlock 
+              projectId={project.id}
+              blockKey="backend"
+              title="Backend & API"
+              content={techArch.backend || ''}
+              icon={<Server className="w-4 h-4 text-emerald-400" />}
+            />
+          </div>
+
+          {/* Database */}
+          <div className="col-span-1">
+            <EditableArchitectureBlock 
+              projectId={project.id}
+              blockKey="database"
+              title="Database & Storage"
+              content={techArch.database || ''}
+              icon={<Database className="w-4 h-4 text-orange-400" />}
+            />
+          </div>
+
+          {/* Infrastructure */}
+          <div className="col-span-1 md:col-span-2 lg:col-span-1">
+            <EditableArchitectureBlock 
+              projectId={project.id}
+              blockKey="infrastructure"
+              title="Cloud & DevOps"
+              content={techArch.infrastructure || ''}
+              icon={<Cloud className="w-4 h-4 text-blue-400" />}
+            />
+          </div>
+
+          {/* Security */}
+          <div className="col-span-1">
+            <EditableArchitectureBlock 
+              projectId={project.id}
+              blockKey="security"
+              title="Sikkerhed & Auth"
+              content={techArch.security || ''}
+              icon={<Shield className="w-4 h-4 text-rose-400" />}
+            />
+          </div>
+
+          {/* System Flow */}
+          <div className="col-span-1 md:col-span-2 lg:col-span-1">
+            <EditableArchitectureBlock 
+              projectId={project.id}
+              blockKey="system_flow"
+              title="Data Flow & Integrationer"
+              content={techArch.system_flow || ''}
+              icon={<GitBranch className="w-4 h-4 text-purple-400" />}
+            />
+          </div>
+
+        </div>
       </div>
     </div>
   );
