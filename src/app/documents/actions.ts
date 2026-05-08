@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
 import * as mammoth from 'mammoth';
-import pdfParse from 'pdf-parse';
+
 
 const BUCKET_NAME = 'drogon_vault';
 
@@ -63,6 +63,7 @@ export async function uploadDocument(formData: FormData) {
     let text = '';
     try {
       if (file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf') {
+         const pdfParse = require('pdf-parse');
          const parsed = await pdfParse(Buffer.from(buffer));
          text = parsed.text;
       } else if (file.name.toLowerCase().endsWith('.docx') || file.type.includes('wordprocessingml')) {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as mammoth from 'mammoth';
-import pdfParse from 'pdf-parse';
+
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,6 +16,7 @@ export async function POST(req: NextRequest) {
     
     let text = '';
     if (file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf') {
+       const pdfParse = require('pdf-parse');
        const parsed = await pdfParse(Buffer.from(buffer));
        text = parsed.text;
     } else {
