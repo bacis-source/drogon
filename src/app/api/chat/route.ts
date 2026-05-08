@@ -128,7 +128,7 @@ export async function POST(req: Request) {
       // Check if project already exists for this user
       const { data: existingProject } = await supabase
         .from('projects')
-        .select('id')
+        .select('id, execution_plan')
         .eq('name', projectName)
         .eq('user_id', user.id)
         .single()
@@ -137,16 +137,26 @@ export async function POST(req: Request) {
 
       if (existingProject) {
         // Update existing project
+        
+        // Preserve existing execution plan if it has tasks
+        const hasExistingPlan = existingProject.execution_plan && Array.isArray(existingProject.execution_plan) && existingProject.execution_plan.length > 0;
+        
+        const updatePayload: any = {
+          summary: projectData.summary,
+          business_model: projectData.business_model,
+          tech_spec: projectData.tech_spec,
+          ip_strategy: projectData.ip_strategy,
+          lean_canvas: projectData.lean_canvas,
+          tech_architecture: projectData.tech_architecture
+        };
+
+        if (!hasExistingPlan) {
+          updatePayload.execution_plan = projectData.execution_plan;
+        }
+
         const { error: pErr } = await supabase
           .from('projects')
-          .update({
-            summary: projectData.summary,
-            business_model: projectData.business_model,
-            tech_spec: projectData.tech_spec,
-            ip_strategy: projectData.ip_strategy,
-            lean_canvas: projectData.lean_canvas,
-            tech_architecture: projectData.tech_architecture
-          })
+          .update(updatePayload)
           .eq('id', existingProject.id)
           
         if (pErr) return new Response('DB Error: ' + pErr.message, { status: 500 })
@@ -166,6 +176,7 @@ export async function POST(req: Request) {
             ip_strategy: projectData.ip_strategy,
             lean_canvas: projectData.lean_canvas,
             tech_architecture: projectData.tech_architecture,
+            execution_plan: projectData.execution_plan,
             user_id: user.id
           })
           .select('id')

@@ -20,7 +20,7 @@ export default async function ExecutionPage() {
 
   const { data: project } = await supabase
     .from('projects')
-    .select('id, name')
+    .select('id, name, execution_plan')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(1)
@@ -43,13 +43,7 @@ export default async function ExecutionPage() {
     );
   }
 
-  const { data: vector } = await supabase
-    .from('project_vectors')
-    .select('metadata')
-    .eq('project_id', project.id)
-    .single();
-
-  const executionPlan: ExecutionTask[] | undefined = vector?.metadata?.execution_plan;
+  const executionPlan: ExecutionTask[] | undefined = project.execution_plan;
 
   return (
     <div className="flex-1 h-full overflow-y-auto bg-[#0A0F1E] nice-scrollbar">
