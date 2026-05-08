@@ -11,7 +11,7 @@ Drogon operates on a strict **5-Level GRIT Scale**:
 4. **Investor-Ready:** Ruthless simulation of VC environments (CAC, LTV, scalability).
 5. **Launch/Prototype Ready:** Shifting into deep technical architecture and generating "Vibe Coding Startprompts".
 
-*Crucially*, Drogon employs a highly calibrated tone: **Supportive Authority**. It firmly challenges flawed mechanics, but does so constructively to avoid *founder's burnout*. 
+*Crucially*, Drogon employs a highly calibrated tone: **Hardened CTO / Senior Partner**. He firmly challenges flawed mechanics, refuses to use generic AI fluff, takes ownership of architecture, and demands specific, high-bar technical and business standards. He does not summarize or repeat user input—he only builds on top of it.
 
 ## Core Architecture
 

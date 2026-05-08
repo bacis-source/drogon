@@ -128,3 +128,26 @@
     @apply font-sans;
   }
 }
+
+@media print {
+  @page {
+    margin: 2cm;
+  }
+  body, html {
+    background: white !important;
+    color: black !important;
+  }
+  * {
+    background-color: transparent !important;
+    color: black !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    border-color: #e5e7eb !important;
+  }
+  .print\:hidden {
+    display: none !important;
+  }
+  header {
+    border-bottom: 2px solid black !important;
+  }
+}

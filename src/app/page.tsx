@@ -3,19 +3,22 @@
 
 import { useChat } from "@ai-sdk/react";
 import { SendHorizontal, Mic, Paperclip, Cloud, Save, Zap, Star, LayoutTemplate, Trophy, Loader2, Flame, FileText, X } from "lucide-react";
-import * as mammoth from "mammoth";
+// Removed mammoth import to prevent Next.js client-side compilation OS freezes
+// import * as mammoth from "mammoth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import Link from "next/link";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { getChatHistory } from '@/app/actions/chat';
 
 export default function ChatPage() {
   const [gritLevel, setGritLevel] = useState<number>(1);
-  const { messages, sendMessage, status, error } = useChat({
+  const chatBody = useMemo(() => ({ gritLevel }), [gritLevel]);
+  const { messages, setMessages, sendMessage, status, error } = useChat({
     // @ts-ignore - 'body' property causes type errors in Vercel build but works perfectly at runtime
-    body: { gritLevel },
+    body: chatBody,
   });
   const isLoading = status !== "ready" && status !== "error";
   const [input, setInput] = useState("");
@@ -25,27 +28,44 @@ export default function ChatPage() {
   const [attachments, setAttachments] = useState<{name: string, url: string}[]>([]);
   const [documentTexts, setDocumentTexts] = useState<{name: string, content: string}[]>([]);
 
+  useEffect(() => {
+    let mounted = true;
+    getChatHistory().then(data => {
+      if (mounted && data && data.length > 0) {
+        setMessages(data);
+      }
+    }).catch(console.error);
+    return () => { mounted = false; };
+  }, []); // Changed to empty dependency array to prevent infinite loop
+
   const processFiles = (files: File[]) => {
     for (const file of files) {
       if (file.name.endsWith('.docx') || file.type.includes('wordprocessingml')) {
-        const reader = new FileReader();
-        reader.onloadend = async () => {
-          try {
-            const arrayBuffer = reader.result as ArrayBuffer;
-            const result = await mammoth.extractRawText({ arrayBuffer });
-            let text = result.value;
-            const CHAR_LIMIT = 30000;
-            if (text.length > CHAR_LIMIT) {
-              text = text.slice(0, CHAR_LIMIT);
-              alert(`Husk at systemet udtrækker max ~10 sider. Dokumentet "${file.name}" er blevet afkortet for at skåne dit budget.`);
-            }
-            setDocumentTexts(prev => [...prev, { name: file.name, content: text }]);
-          } catch (err) {
-            console.error("Fejl ved læsning af Word-dokument:", err);
-            alert(`Kunne ikke læse Word-dokumentet: ${file.name}`);
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        fetch('/api/parse-document', {
+          method: 'POST',
+          body: formData,
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.error) {
+             console.error("Fejl ved læsning af Word-dokument:", data.error);
+             alert(`Kunne ikke læse Word-dokumentet: ${file.name}`);
+          } else {
+             const CHAR_LIMIT = 30000;
+             let text = data.text;
+             if (text.length >= CHAR_LIMIT) {
+               alert(`Husk at systemet udtrækker max ~10 sider. Dokumentet "${file.name}" er blevet afkortet for at skåne dit budget.`);
+             }
+             setDocumentTexts(prev => [...prev, { name: data.name, content: text }]);
           }
-        };
-        reader.readAsArrayBuffer(file);
+        })
+        .catch(err => {
+          console.error("Netværksfejl ved parsing af Word-dokument:", err);
+          alert(`Kunne ikke forbinde til serveren for at læse: ${file.name}`);
+        });
       } 
       else if (file.name.endsWith('.txt') || file.name.endsWith('.csv') || file.name.endsWith('.md')) {
         const reader = new FileReader();

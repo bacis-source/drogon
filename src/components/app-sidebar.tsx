@@ -25,7 +25,7 @@ export function AppSidebar({ userEmail = "MASTER ARCHITECT", userInitial = "M", 
   const router = useRouter()
   if (pathname === '/login') return null;
   return (
-    <Sidebar className="border-r border-slate-800/80 bg-[#0A0F1E] w-[280px]">
+    <Sidebar className="border-r border-slate-800/80 bg-[#0A0F1E] w-[280px] print:hidden">
       
       {/* 1. Header (User Info + Logo) */}
       <SidebarHeader className="p-6 pb-2">
