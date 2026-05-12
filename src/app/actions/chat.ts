@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 
-export async function getChatHistory() {
+export async function getChatHistory(projectId?: string) {
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -10,11 +10,19 @@ export async function getChatHistory() {
     return []
   }
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('messages')
     .select('id, role, content, created_at')
     .eq('user_id', user.id)
     .order('created_at', { ascending: true })
+
+  if (projectId) {
+    query = query.eq('project_id', projectId)
+  } else {
+    query = query.is('project_id', null)
+  }
+
+  const { data, error } = await query
 
   if (error || !data) {
     console.error("Error fetching chat history", error)

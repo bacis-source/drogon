@@ -15,7 +15,17 @@ import { getChatHistory } from '@/app/actions/chat';
 
 export default function ChatPage() {
   const [gritLevel, setGritLevel] = useState<number>(1);
-  const chatBody = useMemo(() => ({ gritLevel }), [gritLevel]);
+  const [projectId, setProjectId] = useState<string | undefined>(undefined);
+  const [isProjectIdLoaded, setIsProjectIdLoaded] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const pid = params.get('project');
+    setProjectId(pid || undefined);
+    setIsProjectIdLoaded(true);
+  }, []);
+
+  const chatBody = useMemo(() => ({ gritLevel, projectId }), [gritLevel, projectId]);
   const { messages, setMessages, sendMessage, status, error } = useChat({
     // @ts-ignore - 'body' property causes type errors in Vercel build but works perfectly at runtime
     body: chatBody,
@@ -29,14 +39,15 @@ export default function ChatPage() {
   const [documentTexts, setDocumentTexts] = useState<{name: string, content: string}[]>([]);
 
   useEffect(() => {
+    if (!isProjectIdLoaded) return;
     let mounted = true;
-    getChatHistory().then(data => {
-      if (mounted && data && data.length > 0) {
+    getChatHistory(projectId).then(data => {
+      if (mounted && data) {
         setMessages(data);
       }
     }).catch(console.error);
     return () => { mounted = false; };
-  }, []); // Changed to empty dependency array to prevent infinite loop
+  }, [projectId, isProjectIdLoaded]);
 
   const processFiles = (files: File[]) => {
     for (const file of files) {

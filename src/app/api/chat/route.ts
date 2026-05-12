@@ -44,7 +44,7 @@ REGLER:
 
 export async function POST(req: Request) {
   try {
-    const { messages, gritLevel = 1 } = await req.json()
+    const { messages, gritLevel = 1, projectId } = await req.json()
     const supabase = await createClient()
 
     const { data: { user } } = await supabase.auth.getUser()
@@ -76,6 +76,7 @@ export async function POST(req: Request) {
     // Save user message to database
     await supabase.from('messages').insert({
       user_id: user.id,
+      project_id: projectId || null,
       role: 'user',
       content: userText
     })
@@ -135,7 +136,7 @@ export async function POST(req: Request) {
         .eq('user_id', user.id)
         .single()
 
-      let projectId;
+      let projectIdToUse;
 
       if (existingProject) {
         // Update existing project
@@ -162,10 +163,10 @@ export async function POST(req: Request) {
           .eq('id', existingProject.id)
           
         if (pErr) return new Response('DB Error: ' + pErr.message, { status: 500 })
-        projectId = existingProject.id
+        projectIdToUse = existingProject.id
         
         // Delete old vectors so we don't get duplicates in RAG
-        await supabase.from('project_vectors').delete().eq('project_id', projectId)
+        await supabase.from('project_vectors').delete().eq('project_id', projectIdToUse)
       } else {
         // Insert new project
         const { data: projectRow, error: pErr } = await supabase
@@ -185,8 +186,16 @@ export async function POST(req: Request) {
           .single()
 
         if (pErr) return new Response('DB Error: ' + pErr.message, { status: 500 })
-        projectId = projectRow.id
+        projectIdToUse = projectRow.id
       }
+      
+      // Update the user's latest message to belong to this new project
+      await supabase.from('messages')
+        .update({ project_id: projectIdToUse })
+        .eq('user_id', user.id)
+        .eq('content', userText)
+        .order('created_at', { ascending: false })
+        .limit(1)
 
       const embeddedContent = `Projekt Navn: ${projectName}\nResume: ${projectData.summary}\nForretningsmodel: ${projectData.business_model}\nTeknisk Spec: ${projectData.tech_spec}\nIP Strategi: ${projectData.ip_strategy}`
 
@@ -198,7 +207,7 @@ export async function POST(req: Request) {
       const { error: vErr } = await supabase
         .from('project_vectors')
         .insert({
-          project_id: projectId,
+          project_id: projectIdToUse,
           content: embeddedContent,
           embedding: embeddingResponse.embedding,
           metadata: { ...projectData }
@@ -208,10 +217,11 @@ export async function POST(req: Request) {
 
       const result = await streamText({
           model: myOpenAI('gpt-4o-mini'),
-          prompt: `Projektet "${projectName}" er gemt i databasen. Bekræft kort overfor brugeren at du har gemt visionen sikkert. Du MÅ IKKE bruge engelske udtryk (som "whenever you need me"). Skriv præcis ét kort, selvsikkert afsnit på fejlfrit dansk. Undgå underdanige assistent-klicheer.`,
+          prompt: `Projektet "${projectName}" er gemt i databasen. Bekræft kort overfor brugeren at du har gemt visionen sikkert. Du MÅ IKKE bruge engelske udtryk. Skriv præcis ét kort, selvsikkert afsnit på fejlfrit dansk. Nævn til sidst, at brugeren lige skal genindlæse siden (F5) for at låse chatten fast til dette nye projekt.`,
           onFinish: async ({ text }) => {
              await supabase.from('messages').insert({
                 user_id: user.id,
+                project_id: projectIdToUse,
                 role: 'assistant',
                 content: text
              })
@@ -238,17 +248,26 @@ export async function POST(req: Request) {
         recentProjects.map(p => `- Projekt: "${p.name}"\n  Resume: ${p.summary}\n  Tech: ${p.tech_spec}`).join('\n\n') +
         `\n\nHvis brugeren spørger til disse projekter, VED DU ALLEREDE hvad de handler om. Du skal IKKE bede dem forklare det igen. Referer direkte til den gemte viden og gå til sagen.`
 
-      // Load documents from Vault for the most recent project
-      const activeProject = recentProjects[0]
-      const { data: vaultDocs } = await supabase
-        .from('vault_documents')
-        .select('filename, content')
-        .eq('project_id', activeProject.id)
+      // Load documents from Vault for the active project
+      let activeProject = null;
+      if (projectId) {
+          activeProject = recentProjects.find(p => p.id === projectId);
+      }
+      if (!activeProject && recentProjects && recentProjects.length > 0) {
+          activeProject = recentProjects[0];
+      }
 
-      if (vaultDocs && vaultDocs.length > 0) {
-        vaultMemory = `\n\nBRUGEREN HAR FØLGENDE DOKUMENTER UPLOADET TIL DERES VAULT FOR DET AKTIVE PROJEKT ("${activeProject.name}"):\n` +
-          vaultDocs.map(d => `[START PÅ VAULT DOKUMENT: ${d.filename}]\n${d.content}\n[SLUT PÅ VAULT DOKUMENT: ${d.filename}]`).join('\n\n') +
-          `\n\nBrug disse tekster proaktivt, hvis brugeren beder dig læse deres uploadede filer eller kigge i the vault.`
+      if (activeProject) {
+        const { data: vaultDocs } = await supabase
+          .from('vault_documents')
+          .select('filename, content')
+          .eq('project_id', activeProject.id)
+
+        if (vaultDocs && vaultDocs.length > 0) {
+          vaultMemory = `\n\nBRUGEREN HAR FØLGENDE DOKUMENTER UPLOADET TIL DERES VAULT FOR DET AKTIVE PROJEKT ("${activeProject.name}"):\n` +
+            vaultDocs.map(d => `[START PÅ VAULT DOKUMENT: ${d.filename}]\n${d.content}\n[SLUT PÅ VAULT DOKUMENT: ${d.filename}]`).join('\n\n') +
+            `\n\nBrug disse tekster proaktivt, hvis brugeren beder dig læse deres uploadede filer eller kigge i the vault.`
+        }
       }
     }
 
@@ -264,6 +283,7 @@ export async function POST(req: Request) {
       onFinish: async ({ text }) => {
          await supabase.from('messages').insert({
             user_id: user.id,
+            project_id: projectId || null,
             role: 'assistant',
             content: text
          })

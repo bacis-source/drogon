@@ -59,7 +59,7 @@ export function AppSidebar({ userEmail = "MASTER ARCHITECT", userInitial = "M", 
           <div className="flex items-center justify-between px-2 mb-3">
              <span className="text-[10px] font-bold tracking-widest text-slate-500 uppercase">ARKIV</span>
              <button 
-               onClick={() => window.location.reload()}
+               onClick={() => { window.location.href = '/'; }}
                className="text-[10px] font-bold tracking-widest text-[#F59E0B] hover:text-[#EAB308] flex items-center gap-1"
              >
                <Plus className="w-3 h-3" /> NY
@@ -73,7 +73,7 @@ export function AppSidebar({ userEmail = "MASTER ARCHITECT", userInitial = "M", 
                      <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">INGEN VISIONER ENDNU</span>
                   </div>
               ) : projects.map((p, index) => (
-                  <div key={p.id} className={`w-full bg-[#111626] border ${index === 0 ? 'border-[#F59E0B]/50 shadow-[0_0_15px_rgba(245,158,11,0.05)]' : 'border-slate-800/80 hover:border-slate-700'} rounded-xl p-3 flex justify-between items-center cursor-pointer transition-colors`}>
+                  <div key={p.id} onClick={() => { window.location.href = `/?project=${p.id}`; }} className={`w-full bg-[#111626] border ${index === 0 ? 'border-[#F59E0B]/50 shadow-[0_0_15px_rgba(245,158,11,0.05)]' : 'border-slate-800/80 hover:border-slate-700'} rounded-xl p-3 flex justify-between items-center cursor-pointer transition-colors`}>
                     <div className="flex flex-col max-w-[85%]">
                       <span className={`text-xs font-bold tracking-wider ${index === 0 ? 'text-[#F59E0B]' : 'text-slate-300'} leading-none mb-1 uppercase truncate`} title={p.name}>
                         {p.name}

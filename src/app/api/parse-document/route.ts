@@ -16,6 +16,7 @@ export async function POST(req: NextRequest) {
     
     let text = '';
     if (file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf') {
+       // eslint-disable-next-line @typescript-eslint/no-require-imports
        const pdfParse = require('pdf-parse');
        const parsed = await pdfParse(Buffer.from(buffer));
        text = parsed.text;
