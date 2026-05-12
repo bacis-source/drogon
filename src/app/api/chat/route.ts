@@ -244,20 +244,15 @@ export async function POST(req: Request) {
     let vaultMemory = ''
     
     if (recentProjects && recentProjects.length > 0) {
-      projectMemory = `\n\nDU HAR FØLGENDE PROJEKTER GEMT I DIN HUKOMMELSE FOR DENNE BRUGER:\n` + 
-        recentProjects.map(p => `- Projekt: "${p.name}"\n  Resume: ${p.summary}\n  Tech: ${p.tech_spec}`).join('\n\n') +
-        `\n\nHvis brugeren spørger til disse projekter, VED DU ALLEREDE hvad de handler om. Du skal IKKE bede dem forklare det igen. Referer direkte til den gemte viden og gå til sagen.`
-
-      // Load documents from Vault for the active project
       let activeProject = null;
       if (projectId) {
           activeProject = recentProjects.find(p => p.id === projectId);
       }
-      if (!activeProject && recentProjects && recentProjects.length > 0) {
-          activeProject = recentProjects[0];
-      }
 
       if (activeProject) {
+        // We are inside a specific project
+        projectMemory = `\n\n[SYSTEM NOTE: DU ARBEJDER LIGE NU PÅ PROJEKTET: "${activeProject.name}".\nResume: ${activeProject.summary}\nTech: ${activeProject.tech_spec}\nFokuser KUN på dette projekt!]`
+        
         const { data: vaultDocs } = await supabase
           .from('vault_documents')
           .select('filename, content')
@@ -268,6 +263,11 @@ export async function POST(req: Request) {
             vaultDocs.map(d => `[START PÅ VAULT DOKUMENT: ${d.filename}]\n${d.content}\n[SLUT PÅ VAULT DOKUMENT: ${d.filename}]`).join('\n\n') +
             `\n\nBrug disse tekster proaktivt, hvis brugeren beder dig læse deres uploadede filer eller kigge i the vault.`
         }
+      } else {
+        // We are in a blank new chat
+        projectMemory = `\n\n[SYSTEM NOTE: Brugeren er ved at starte et NYT projekt. Her er deres tidligere projekter til reference, hvis de refererer til dem:\n` + 
+          recentProjects.map(p => `- Projekt: "${p.name}"\n  Resume: ${p.summary}`).join('\n') +
+          `\n\nVIGTIGT: Tving ALDRIG samtalen over på de gamle projekter, medmindre brugeren eksplicit beder om det. Fokuser 100% på at bygge deres nye idé.]`
       }
     }
 
