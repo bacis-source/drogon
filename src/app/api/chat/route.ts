@@ -189,13 +189,11 @@ export async function POST(req: Request) {
         projectIdToUse = projectRow.id
       }
       
-      // Update the user's latest message to belong to this new project
+      // Update ALL unassigned messages for this user to belong to this new project
       await supabase.from('messages')
         .update({ project_id: projectIdToUse })
         .eq('user_id', user.id)
-        .eq('content', userText)
-        .order('created_at', { ascending: false })
-        .limit(1)
+        .is('project_id', null)
 
       const embeddedContent = `Projekt Navn: ${projectName}\nResume: ${projectData.summary}\nForretningsmodel: ${projectData.business_model}\nTeknisk Spec: ${projectData.tech_spec}\nIP Strategi: ${projectData.ip_strategy}`
 
