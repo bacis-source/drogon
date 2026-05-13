@@ -263,9 +263,9 @@ Fokuser KUN på at rådgive ud fra disse specifikke rammer og data. Modsæt dig 
         }
       } else {
         // We are in a blank new chat
-        projectMemory = `\n\n[SYSTEM NOTE: Brugeren er ved at starte et NYT projekt. Her er deres tidligere projekter til reference, hvis de refererer til dem:\n` + 
-          recentProjects.map(p => `- Projekt: "${p.name}"\n  Resume: ${p.summary}`).join('\n') +
-          `\n\nVIGTIGT: Tving ALDRIG samtalen over på de gamle projekter, medmindre brugeren eksplicit beder om det. Fokuser 100% på at bygge deres nye idé.]`
+        projectMemory = `\n\n[SYSTEM NOTE: Brugeren er i et NYT tomt arbejdsrum. Her er en overfladisk liste over deres tidligere projekter:\n` + 
+          recentProjects.map((p: any) => `- Projekt: "${p.name}" (ID: ${p.id})\n  Resume: ${p.summary}`).join('\n') +
+          `\n\nVIGTIGT: Du har IKKE adgang til den dybe data for disse projekter lige nu. Hvis brugeren spørger ind til de dybe overvejelser fra et af disse projekter, må du IKKE sige "Det har jeg ikke adgang til" som en dum chatbot! Du skal i stedet kynisk sige: "Du befinder dig lige nu i det tomme rum. For at jeg kan hente alle de dybe arkitektur-data om [Projekt Navn], skal du aktivere projektet ved at klikke her: [Åbn Projekt](/?project=[INDSÆT ID HER]). Gør det, så kører vi videre."]`
       }
     }
 
