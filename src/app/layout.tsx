@@ -6,6 +6,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { createClient } from "@/lib/supabase/server";
 import { signout } from "@/app/login/actions";
+import { getAccessibleProjects } from "@/lib/projects";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,13 +39,7 @@ export default async function RootLayout({
 
   let projects: any[] = [];
   if (user) {
-    const { data: userProjects } = await supabase
-      .from('projects')
-      .select('id, name')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
-    
-    if (userProjects) projects = userProjects;
+    projects = await getAccessibleProjects(supabase, user.id, user.email);
   }
 
   return (

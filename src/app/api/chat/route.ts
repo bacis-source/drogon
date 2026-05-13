@@ -2,6 +2,7 @@
 import { streamText, generateObject, embed } from 'ai'
 import { createOpenAI } from '@ai-sdk/openai'
 import { createClient } from '@/lib/supabase/server'
+import { getAccessibleProjects } from '@/lib/projects'
 import { z } from 'zod'
 
 export const maxDuration = 60
@@ -128,13 +129,8 @@ export async function POST(req: Request) {
 
       const projectData = extraction.object
 
-      // Check if project already exists for this user
-      const { data: existingProject } = await supabase
-        .from('projects')
-        .select('id, execution_plan')
-        .eq('name', projectName)
-        .eq('user_id', user.id)
-        .single()
+      const accessibleProjects = await getAccessibleProjects(supabase, user.id, user.email);
+      const existingProject = accessibleProjects.find((p: any) => p.name === projectName);
 
       let projectIdToUse;
 
@@ -231,12 +227,8 @@ export async function POST(req: Request) {
     const fullName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Visionæren'
 
     // Fetch the 3 most recent projects to inject into the system prompt (Persistent Memory / RAG-light)
-    const { data: recentProjects } = await supabase
-      .from('projects')
-      .select('id, name, summary, tech_spec')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(3)
+    const allProjects = await getAccessibleProjects(supabase, user.id, user.email);
+    const recentProjects = allProjects.slice(0, 3);
 
     let projectMemory = ''
     let vaultMemory = ''

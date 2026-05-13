@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
+import { getAccessibleProjects } from "@/lib/projects"
 
 export interface ExecutionTask {
   task: string;
@@ -15,13 +16,9 @@ export async function updateTaskStatus(projectId: string, taskName: string, newS
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error("Unauthorized")
 
-  const { data: project, error: fetchError } = await supabase
-    .from('projects')
-    .select('execution_plan')
-    .eq('id', projectId)
-    .single()
-
-  if (fetchError || !project) throw new Error("Could not fetch project")
+  const accessibleProjects = await getAccessibleProjects(supabase, user.id, user.email)
+  const project = accessibleProjects.find((p: any) => p.id === projectId)
+  if (!project) throw new Error("Could not fetch project or unauthorized")
 
   const executionPlan: ExecutionTask[] = project.execution_plan || []
   
@@ -48,13 +45,9 @@ export async function addTask(projectId: string, taskName: string, phase: string
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error("Unauthorized")
 
-  const { data: project } = await supabase
-    .from('projects')
-    .select('execution_plan')
-    .eq('id', projectId)
-    .single()
-
-  if (!project) throw new Error("Could not fetch project")
+  const accessibleProjects = await getAccessibleProjects(supabase, user.id, user.email)
+  const project = accessibleProjects.find((p: any) => p.id === projectId)
+  if (!project) throw new Error("Could not fetch project or unauthorized")
 
   const executionPlan: ExecutionTask[] = project.execution_plan || []
   
@@ -76,13 +69,9 @@ export async function deleteTask(projectId: string, taskName: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error("Unauthorized")
 
-  const { data: project } = await supabase
-    .from('projects')
-    .select('execution_plan')
-    .eq('id', projectId)
-    .single()
-
-  if (!project) throw new Error("Could not fetch project")
+  const accessibleProjects = await getAccessibleProjects(supabase, user.id, user.email)
+  const project = accessibleProjects.find((p: any) => p.id === projectId)
+  if (!project) throw new Error("Could not fetch project or unauthorized")
 
   const executionPlan: ExecutionTask[] = project.execution_plan || []
   const updatedPlan = executionPlan.filter(t => t.task !== taskName)

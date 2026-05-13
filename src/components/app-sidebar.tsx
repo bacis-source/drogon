@@ -12,7 +12,7 @@ import {
   SidebarMenuItem,
   SidebarFooter,
 } from "@/components/ui/sidebar"
-import { Compass, FileText, LayoutTemplate, LogOut, MessageSquare, Plus, CheckSquare, Trophy, Cloud, Check } from "lucide-react"
+import { Compass, FileText, LayoutTemplate, LogOut, MessageSquare, Plus, CheckSquare, Trophy, Cloud, Check, Users } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 
 interface Project {
@@ -134,6 +134,16 @@ export function AppSidebar({ userEmail = "MASTER ARCHITECT", userInitial = "M", 
                 >
                   <FileText className="w-4 h-4 ml-1" />
                   DOKUMENTER
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  onClick={() => router.push('/team')}
+                  className={`w-full hover:bg-slate-800/50 rounded-xl h-10 justify-start font-bold uppercase tracking-wider text-xs flex items-center gap-3 transition-colors ${pathname === '/team' ? 'bg-cyan-900/20 text-cyan-400 border-l-2 border-cyan-500' : 'text-slate-400 hover:text-cyan-300'}`}
+                >
+                  <Users className="w-4 h-4 ml-1" />
+                  TEAM & DELING
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

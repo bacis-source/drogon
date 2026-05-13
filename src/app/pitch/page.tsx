@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { Trophy, Target, ShieldAlert, Zap, TrendingUp, Flame, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { getAccessibleProjects } from "@/lib/projects";
 import { PdfExportButton } from "@/components/pdf-export-button";
 
 export default async function PitchPage() {
@@ -12,13 +13,8 @@ export default async function PitchPage() {
     redirect("/login");
   }
 
-  const { data: project } = await supabase
-    .from('projects')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .single();
+  const projects = await getAccessibleProjects(supabase, user.id, user.email);
+  const project = projects.length > 0 ? projects[0] : null;
 
   if (!project) {
     return (

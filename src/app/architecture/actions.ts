@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { getAccessibleProjects } from '@/lib/projects'
 
 export async function updateArchitectureBlock(projectId: string, blockKey: string, content: string) {
   const supabase = await createClient()
@@ -11,16 +12,12 @@ export async function updateArchitectureBlock(projectId: string, blockKey: strin
     return { error: 'Unauthorized' }
   }
 
-  // First get the existing architecture
-  const { data: project, error: fetchErr } = await supabase
-    .from('projects')
-    .select('tech_architecture')
-    .eq('id', projectId)
-    .eq('user_id', user.id)
-    .single()
+  // Check access
+  const accessibleProjects = await getAccessibleProjects(supabase, user.id, user.email)
+  const project = accessibleProjects.find((p: any) => p.id === projectId)
 
-  if (fetchErr) {
-    return { error: fetchErr.message }
+  if (!project) {
+    return { error: 'Unauthorized or project not found' }
   }
 
   const currentArch = project.tech_architecture || {}

@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { CheckSquare, ListTodo, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { getAccessibleProjects } from "@/lib/projects";
 import { ExecutionBoard } from "./board";
 
 interface ExecutionTask {
@@ -18,13 +19,8 @@ export default async function ExecutionPage() {
     redirect("/login");
   }
 
-  const { data: project } = await supabase
-    .from('projects')
-    .select('id, name, execution_plan')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .single();
+  const projects = await getAccessibleProjects(supabase, user.id, user.email);
+  const project = projects.length > 0 ? projects[0] : null;
 
   if (!project) {
     return (

@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { redirect } from "next/navigation";
 import { FileText, FolderLock, ShieldAlert, ArrowRight, Download, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { getAccessibleProjects } from "@/lib/projects";
 import { UploadButton } from "./upload-button";
 import { deleteDocument } from "./actions";
 
@@ -14,13 +15,8 @@ export default async function DocumentsPage() {
     redirect("/login");
   }
 
-  const { data: project } = await supabase
-    .from('projects')
-    .select('id, name')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .single();
+  const projects = await getAccessibleProjects(supabase, user.id, user.email);
+  const project = projects.length > 0 ? projects[0] : null;
 
   if (!project) {
     return (

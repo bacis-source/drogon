@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { LayoutTemplate, Lightbulb, Zap, ArrowRight, Target, Activity, ShieldAlert, Users, Coins, TrendingDown, Rocket, MessagesSquare } from "lucide-react";
 import Link from "next/link";
 import { EditableBlock } from "./editable-block";
+import { getAccessibleProjects } from "@/lib/projects";
 
 export default async function CanvasPage() {
   const supabase = await createClient();
@@ -12,13 +13,8 @@ export default async function CanvasPage() {
     redirect("/login");
   }
 
-  const { data: project } = await supabase
-    .from('projects')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .single();
+  const projects = await getAccessibleProjects(supabase, user.id, user.email);
+  const project = projects.length > 0 ? projects[0] : null;
 
   if (!project) {
     return (

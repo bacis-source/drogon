@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { Cpu, Server, Shield, Cloud, ArrowRight, Database, MonitorSmartphone, GitBranch, Zap, Layers } from "lucide-react";
 import Link from "next/link";
+import { getAccessibleProjects } from "@/lib/projects";
 import { EditableArchitectureBlock } from "./editable-block";
 
 export default async function ArchitecturePage() {
@@ -12,13 +13,8 @@ export default async function ArchitecturePage() {
     redirect("/login");
   }
 
-  const { data: project } = await supabase
-    .from('projects')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .single();
+  const projects = await getAccessibleProjects(supabase, user.id, user.email);
+  const project = projects.length > 0 ? projects[0] : null;
 
   if (!project) {
     return (
