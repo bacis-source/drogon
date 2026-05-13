@@ -115,6 +115,26 @@ export async function POST(req: Request) {
             security: z.string().describe('Authentication, authorization, data protection.'),
             system_flow: z.string().describe('A brief explanation of how data flows through the system.')
           }).describe('Technical Architecture Blueprint.'),
+          business_plan: z.object({
+            executive_summary: z.string().describe('Executive Summary of the business.'),
+            market_analysis: z.string().describe('Market analysis and competitive landscape.'),
+            go_to_market: z.string().describe('Go-to-market strategy.'),
+            operations: z.string().describe('Operational requirements.')
+          }).describe('Strategic Business Plan.'),
+          budget: z.object({
+            capex: z.array(z.object({
+              name: z.string(),
+              amount: z.number()
+            })).describe('Initial Capital Expenditures (Engangsomkostninger i DKK).'),
+            opex: z.array(z.object({
+              name: z.string(),
+              amount: z.number()
+            })).describe('Monthly Operational Expenses (Månedlige udgifter i DKK).'),
+            revenue: z.array(z.object({
+              name: z.string(),
+              amount: z.number()
+            })).describe('Expected monthly revenue streams (Forventet månedlig indtjening i DKK).')
+          }).describe('Financial Budget structure.'),
           execution_plan: z.array(z.object({
             task: z.string().describe('Short title of the task, e.g., "Design MVP Database"'),
             status: z.enum(['BACKLOG', 'IN_PROGRESS', 'DONE']).describe('The logical current state of this task.'),
@@ -146,7 +166,9 @@ export async function POST(req: Request) {
           tech_spec: projectData.tech_spec,
           ip_strategy: projectData.ip_strategy,
           lean_canvas: projectData.lean_canvas,
-          tech_architecture: projectData.tech_architecture
+          tech_architecture: projectData.tech_architecture,
+          business_plan: projectData.business_plan,
+          budget: projectData.budget
         };
 
         if (!hasExistingPlan) {
@@ -175,6 +197,8 @@ export async function POST(req: Request) {
             ip_strategy: projectData.ip_strategy,
             lean_canvas: projectData.lean_canvas,
             tech_architecture: projectData.tech_architecture,
+            business_plan: projectData.business_plan,
+            budget: projectData.budget,
             execution_plan: projectData.execution_plan,
             user_id: user.id
           })
@@ -243,12 +267,14 @@ export async function POST(req: Request) {
         // We are inside a specific project
         const canvasStr = activeProject.lean_canvas ? JSON.stringify(activeProject.lean_canvas) : 'Ikke defineret';
         const archStr = activeProject.tech_architecture ? JSON.stringify(activeProject.tech_architecture) : 'Ikke defineret';
+        const bpStr = activeProject.business_plan ? JSON.stringify(activeProject.business_plan) : 'Ikke defineret';
 
         projectMemory = `\n\n[SYSTEM NOTE: DU ARBEJDER LIGE NU PÅ PROJEKTET: "${activeProject.name}".
 Resume: ${activeProject.summary || 'Intet resume'}
 Forretningsmodel: ${activeProject.business_model || 'Ikke defineret'}
 Lean Canvas: ${canvasStr}
 Arkitektur: ${archStr}
+Forretningsplan: ${bpStr}
 Fokuser KUN på at rådgive ud fra disse specifikke rammer og data. Modsæt dig proaktivt idéer der strider imod dette fundament!]`
         
         const { data: vaultDocs } = await supabase

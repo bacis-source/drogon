@@ -12,7 +12,7 @@ import {
   SidebarMenuItem,
   SidebarFooter,
 } from "@/components/ui/sidebar"
-import { Compass, FileText, LayoutTemplate, LogOut, MessageSquare, Plus, CheckSquare, Trophy, Cloud, Check, Users } from "lucide-react"
+import { Compass, FileText, LayoutTemplate, LogOut, MessageSquare, Plus, CheckSquare, Trophy, Cloud, Check, Users, Briefcase } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 
 interface Project {
@@ -104,6 +104,16 @@ export function AppSidebar({ userEmail = "MASTER ARCHITECT", userInitial = "M", 
                 >
                   <LayoutTemplate className="w-4 h-4 ml-1" />
                   LEAN CANVAS
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  onClick={() => router.push('/business-plan')}
+                  className={`w-full hover:bg-slate-800/50 rounded-xl h-10 justify-start font-bold uppercase tracking-wider text-xs flex items-center gap-3 transition-colors ${pathname === '/business-plan' ? 'bg-emerald-900/20 text-emerald-400 border-l-2 border-emerald-500' : 'text-slate-400 hover:text-emerald-300'}`}
+                >
+                  <Briefcase className="w-4 h-4 ml-1" />
+                  FORRETNINGSPLAN
                 </SidebarMenuButton>
               </SidebarMenuItem>
 
