@@ -211,7 +211,7 @@ export async function POST(req: Request) {
 
       const result = await streamText({
           model: myOpenAI('gpt-4o-mini'),
-          prompt: `Projektet "${projectName}" er gemt i databasen. Du skal bekræfte dette med et ultra-kort, cool og no-bullshit svar. DU MÅ IKKE VÆRE HØFLIG ELLER SERVICE-MINDED. Ingen "Du kan være helt tryg ved" eller "Bedes du venligst". Skriv bare at den ligger i the vault, og bed dem trykke F5 for at låse chatten fast.`,
+          prompt: `Projektet "${projectName}" er gemt i databasen med ID ${projectIdToUse}. Du skal bekræfte dette med et ultra-kort, cool og no-bullshit svar. DU MÅ IKKE VÆRE HØFLIG. Skriv at visionen er låst i the vault. VIGTIGT: Afslut din besked med præcis dette markdown link (inkluder parenteserne!): [Aktiver Projektet Her](/?project=${projectIdToUse})`,
           onFinish: async ({ text }) => {
              await supabase.from('messages').insert({
                 user_id: user.id,
@@ -241,7 +241,15 @@ export async function POST(req: Request) {
 
       if (activeProject) {
         // We are inside a specific project
-        projectMemory = `\n\n[SYSTEM NOTE: DU ARBEJDER LIGE NU PÅ PROJEKTET: "${activeProject.name}".\nResume: ${activeProject.summary}\nTech: ${activeProject.tech_spec}\nFokuser KUN på dette projekt!]`
+        const canvasStr = activeProject.lean_canvas ? JSON.stringify(activeProject.lean_canvas) : 'Ikke defineret';
+        const archStr = activeProject.tech_architecture ? JSON.stringify(activeProject.tech_architecture) : 'Ikke defineret';
+
+        projectMemory = `\n\n[SYSTEM NOTE: DU ARBEJDER LIGE NU PÅ PROJEKTET: "${activeProject.name}".
+Resume: ${activeProject.summary || 'Intet resume'}
+Forretningsmodel: ${activeProject.business_model || 'Ikke defineret'}
+Lean Canvas: ${canvasStr}
+Arkitektur: ${archStr}
+Fokuser KUN på at rådgive ud fra disse specifikke rammer og data. Modsæt dig proaktivt idéer der strider imod dette fundament!]`
         
         const { data: vaultDocs } = await supabase
           .from('vault_documents')
