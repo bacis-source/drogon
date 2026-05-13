@@ -247,24 +247,78 @@ export default function ChatPage() {
                     : "bg-[#111626] text-slate-300 border border-slate-800/60 rounded-tl-sm shadow-lg"
                 }`}>
                   <div className="leading-relaxed whitespace-pre-wrap text-[15px] markdown-content">
-                    {(m as any).content && (
-                      <ReactMarkdown 
-                        remarkPlugins={[remarkGfm]}
-                        components={{
-                          h1: ({node, ...props}) => <h1 className="text-xl font-bold mt-4 mb-2 text-[#F59E0B]" {...props} />,
-                          h2: ({node, ...props}) => <h2 className="text-lg font-bold mt-4 mb-2 text-[#F59E0B]" {...props} />,
-                          h3: ({node, ...props}) => <h3 className="text-base font-bold mt-4 mb-2 text-[#F59E0B]" {...props} />,
-                          strong: ({node, ...props}) => <strong className="font-bold text-white" {...props} />,
-                          ul: ({node, ...props}) => <ul className="list-disc pl-4 my-2 space-y-1" {...props} />,
-                          ol: ({node, ...props}) => <ol className="list-decimal pl-4 my-2 space-y-1" {...props} />,
-                          li: ({node, ...props}) => <li className="pl-1" {...props} />,
-                          p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
-                          code: ({node, ...props}) => <code className="bg-slate-800/50 text-teal-400 px-1.5 py-0.5 rounded text-sm" {...props} />
-                        }}
-                      >
-                        {(m as any).content}
-                      </ReactMarkdown>
-                    )}
+                    {(m as any).content && (() => {
+                      const content = (m as any).content;
+                      if (!content.includes('<thought>')) {
+                        return (
+                          <ReactMarkdown 
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                              h1: ({node, ...props}) => <h1 className="text-xl font-bold mt-4 mb-2 text-[#F59E0B]" {...props} />,
+                              h2: ({node, ...props}) => <h2 className="text-lg font-bold mt-4 mb-2 text-[#F59E0B]" {...props} />,
+                              h3: ({node, ...props}) => <h3 className="text-base font-bold mt-4 mb-2 text-[#F59E0B]" {...props} />,
+                              strong: ({node, ...props}) => <strong className="font-bold text-white" {...props} />,
+                              ul: ({node, ...props}) => <ul className="list-disc pl-4 my-2 space-y-1" {...props} />,
+                              ol: ({node, ...props}) => <ol className="list-decimal pl-4 my-2 space-y-1" {...props} />,
+                              li: ({node, ...props}) => <li className="pl-1" {...props} />,
+                              p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
+                              code: ({node, ...props}) => <code className="bg-slate-800/50 text-teal-400 px-1.5 py-0.5 rounded text-sm" {...props} />
+                            }}
+                          >
+                            {content}
+                          </ReactMarkdown>
+                        );
+                      }
+
+                      const parts = content.split('<thought>');
+                      const normalPreText = parts[0];
+                      const rest = parts[1] || '';
+                      
+                      let thoughtText = '';
+                      let normalPostText = '';
+
+                      if (rest.includes('</thought>')) {
+                          const splitRest = rest.split('</thought>');
+                          thoughtText = splitRest[0];
+                          normalPostText = splitRest.slice(1).join('</thought>'); // in case of multiple closing tags
+                      } else {
+                          thoughtText = rest;
+                      }
+
+                      const MarkdownBlock = ({ text }: { text: string }) => (
+                        <ReactMarkdown 
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                              h1: ({node, ...props}) => <h1 className="text-xl font-bold mt-4 mb-2 text-[#F59E0B]" {...props} />,
+                              h2: ({node, ...props}) => <h2 className="text-lg font-bold mt-4 mb-2 text-[#F59E0B]" {...props} />,
+                              h3: ({node, ...props}) => <h3 className="text-base font-bold mt-4 mb-2 text-[#F59E0B]" {...props} />,
+                              strong: ({node, ...props}) => <strong className="font-bold text-white" {...props} />,
+                              ul: ({node, ...props}) => <ul className="list-disc pl-4 my-2 space-y-1" {...props} />,
+                              ol: ({node, ...props}) => <ol className="list-decimal pl-4 my-2 space-y-1" {...props} />,
+                              li: ({node, ...props}) => <li className="pl-1" {...props} />,
+                              p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
+                              code: ({node, ...props}) => <code className="bg-slate-800/50 text-teal-400 px-1.5 py-0.5 rounded text-sm" {...props} />
+                            }}
+                          >
+                            {text}
+                        </ReactMarkdown>
+                      );
+
+                      return (
+                        <>
+                          {normalPreText && <MarkdownBlock text={normalPreText} />}
+                          <div className="bg-[#0A0D16] border border-slate-700/50 rounded-xl p-4 my-4 shadow-inner">
+                              <div className="flex items-center gap-2 mb-2 text-slate-500 font-bold tracking-widest uppercase text-[10px]">
+                                  🧠 Drogons Meta-Tilstand
+                              </div>
+                              <div className="italic font-mono text-xs leading-relaxed whitespace-pre-wrap text-slate-400">
+                                {thoughtText}
+                              </div>
+                          </div>
+                          {normalPostText && <MarkdownBlock text={normalPostText} />}
+                        </>
+                      );
+                    })()}
                     {(m as any).parts && (m as any).parts.map((p: any, i: number) => {
                        if (p.type === 'image') return <img key={i} src={p.image} className="max-w-md w-full rounded-xl mt-3 mb-2 border border-slate-700/50 block shadow-lg object-contain bg-[#0E1320]" alt="attachment" />;
                        if (p.type === 'text' && !(m as any).content) return <div key={i}><ReactMarkdown remarkPlugins={[remarkGfm]}>{p.text}</ReactMarkdown></div>;
