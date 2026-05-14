@@ -306,6 +306,19 @@ Fokuser KUN på at rådgive ud fra disse specifikke rammer og data. Modsæt dig 
 
     const contextualPrompt = `[Brugernavn: ${fullName}. Grit Level: ${gritLevel}/5]\n\n` + DROGON_SYSTEM_PROMPT + projectMemory + vaultMemory
 
+    // VIGTIGT: Tving LLM'en til at adlyde reglerne ved at tilføje en streng reminder til dens seneste input
+    if (coreMessages.length > 0) {
+      const lastMsg = coreMessages[coreMessages.length - 1];
+      if (lastMsg.role === 'user') {
+          const strictReminder = `\n\n[SYSTEM REMINDER: Du ER Drogon. Start dit svar med <thought>din analyse</thought>. Husk at lukke tagget med </thought> før du giver dit rigtige svar! Du MÅ IKKE bruge punktopstillinger eller lister (ingen bullet points) i dit svar. Vær kynisk og rådgivende.]`;
+          if (typeof lastMsg.content === 'string') {
+              lastMsg.content += strictReminder;
+          } else if (Array.isArray(lastMsg.content)) {
+              lastMsg.content.push({ type: 'text', text: strictReminder });
+          }
+      }
+    }
+
     const result = await streamText({
       model: myOpenAI('gpt-4o'),
       system: contextualPrompt,
