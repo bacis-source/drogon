@@ -3,6 +3,8 @@
 import { createClient } from "@/lib/supabase/server"
 
 import { getAccessibleProjects } from "@/lib/projects"
+import { generateText } from 'ai'
+import { createOpenAI } from '@ai-sdk/openai'
 
 export async function getChatHistory(projectId?: string) {
   const supabase = await createClient()
@@ -26,6 +28,7 @@ export async function getChatHistory(projectId?: string) {
       .from('messages')
       .select('id, role, content, created_at')
       .eq('project_id', projectId)
+      .eq('is_archived', false)
       .order('created_at', { ascending: true })
   } else {
     // Blank canvas, only fetch the user's own unassigned messages
@@ -34,6 +37,7 @@ export async function getChatHistory(projectId?: string) {
       .select('id, role, content, created_at')
       .eq('user_id', user.id)
       .is('project_id', null)
+      .eq('is_archived', false)
       .order('created_at', { ascending: true })
   }
 
@@ -51,4 +55,79 @@ export async function getChatHistory(projectId?: string) {
     content: msg.content,
     createdAt: new Date(msg.created_at)
   }))
+}
+
+export async function handoffChat(projectId?: string) {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Unauthorized')
+
+    // Get current active messages
+    let query = supabase
+      .from('messages')
+      .select('role, content')
+      .eq('is_archived', false)
+      .order('created_at', { ascending: true })
+
+    if (projectId) {
+      query = query.eq('project_id', projectId)
+    } else {
+      query = query.eq('user_id', user.id).is('project_id', null)
+    }
+
+    const { data: messages, error: fetchErr } = await query;
+    if (fetchErr) throw new Error(`Fetch error: ${fetchErr.message}`);
+
+    if (!messages || messages.length === 0) return { success: true }
+    
+    // Filter out any safety messages that might trigger OpenAI's moderation API again during summarization
+    const safeMessages = messages.filter(m => !m.content.includes("I'm sorry, I can't assist with that"));
+    const conversation = safeMessages.map(m => `${m.role}: ${m.content}`).join('\n')
+
+    const myOpenAI = createOpenAI({ apiKey: process.env.OPENAI_API_KEY })
+
+    // Generate Handoff Summary
+    const { text: summary } = await generateText({
+      model: myOpenAI('gpt-4o-mini'),
+      prompt: `Gennemlæs følgende samtale og træk den absolutte essens ud (konklusioner, valgt teknologi, strategiske beslutninger og kontekst). Ignorer smalltalk og meta-diskussion. Skriv en meget tæt og professionel opsummering:\n\n${conversation}`,
+    })
+
+    // Archive old messages
+    let archiveQuery = supabase
+      .from('messages')
+      .update({ is_archived: true })
+      .eq('is_archived', false)
+
+    if (projectId) {
+      archiveQuery = archiveQuery.eq('project_id', projectId)
+    } else {
+      archiveQuery = archiveQuery.eq('user_id', user.id).is('project_id', null)
+    }
+    const { error: archiveErr } = await archiveQuery;
+    if (archiveErr) throw new Error(`Archive error: ${archiveErr.message}`);
+
+    // Insert the summary as a system message (will be loaded as context but hidden from UI if UI filters out 'system')
+    const { error: ins1Err } = await supabase.from('messages').insert({
+      user_id: user.id,
+      project_id: projectId || null,
+      role: 'system',
+      content: `[HANDOFF SUMMARY FRA TIDLIGERE SPOR]:\n${summary}`
+    })
+    if (ins1Err) throw new Error(`Insert summary error: ${ins1Err.message}`);
+
+    // Insert Drogon's greeting for the new track
+    const { error: ins2Err } = await supabase.from('messages').insert({
+      user_id: user.id,
+      project_id: projectId || null,
+      role: 'assistant',
+      content: `Jeg har destilleret vores konklusioner og lagt dem i min langtidshukommelse. Tavlen er renset, men fundamentet står stadig skarpt. Hvad er næste fase?`
+    })
+    if (ins2Err) throw new Error(`Insert greeting error: ${ins2Err.message}`);
+
+    return { success: true }
+  } catch (err: any) {
+    console.error("Handoff Error:", err);
+    return { success: false, error: err.message || String(err) };
+  }
 }

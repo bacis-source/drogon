@@ -27,6 +27,6 @@ export async function GET(request: Request) {
     }
   }
 
-  // return the user to an error page with instructions
-  return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent('Ugyldigt eller udløbet bekræftelseslink.')}`)
+  // Tillad implicit flow (hvor token sidder i URL hash fragmentet) at gå videre til klienten
+  return NextResponse.redirect(`${origin}${next}`)
 }

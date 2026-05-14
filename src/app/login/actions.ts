@@ -61,9 +61,9 @@ export async function resetPassword(formData: FormData) {
   const supabase = await createClient()
   const email = formData.get('email') as string
   
-  // We don't use 'headers' here as it's cleaner to construct the URL based on environment or host header.
-  // In a Vercel edge/serverless function, it's safe to assume NEXT_PUBLIC_SITE_URL or infer from request.
-  const origin = process.env.NEXT_PUBLIC_SITE_URL || 'https://drogon.vercel.app'
+  const headersList = await headers()
+  const host = headersList.get('host') || 'localhost:3000'
+  const origin = host.includes('localhost') ? `http://${host}` : `https://${host}`
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${origin}/auth/callback?next=/update-password`,

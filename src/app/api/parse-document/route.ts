@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import * as mammoth from 'mammoth';
-
 
 export async function POST(req: NextRequest) {
   try {
@@ -21,7 +19,9 @@ export async function POST(req: NextRequest) {
        const parsed = await pdfParse(Buffer.from(buffer));
        text = parsed.text;
     } else {
-       // Parse the document using mammoth
+       // Parse the document using mammoth dynamically
+       // eslint-disable-next-line @typescript-eslint/no-require-imports
+       const mammoth = require('mammoth');
        const result = await mammoth.extractRawText({ buffer: Buffer.from(buffer) });
        text = result.value;
     }

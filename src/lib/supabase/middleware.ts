@@ -37,7 +37,7 @@ export async function updateSession(request: NextRequest) {
 
   if (request.headers.get('x-bypass') === 'diagnostic123') return supabaseResponse;
 
-  if (!user && !request.nextUrl.pathname.startsWith('/login')) {
+  if (!user && !request.nextUrl.pathname.startsWith('/login') && !request.nextUrl.pathname.startsWith('/auth') && !request.nextUrl.pathname.startsWith('/update-password')) {
       const url = request.nextUrl.clone()
       url.pathname = '/login'
       return NextResponse.redirect(url)

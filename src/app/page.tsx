@@ -3,15 +3,13 @@
 
 import { useChat } from "@ai-sdk/react";
 import { SendHorizontal, Mic, Paperclip, Cloud, Save, Zap, Star, LayoutTemplate, Trophy, Loader2, Flame, FileText, X } from "lucide-react";
-// Removed mammoth import to prevent Next.js client-side compilation OS freezes
-// import * as mammoth from "mammoth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState, useMemo } from "react";
 import Link from "next/link";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { getChatHistory } from '@/app/actions/chat';
+import { getChatHistory, handoffChat } from '@/app/actions/chat';
 
 export default function ChatPage() {
   const [gritLevel, setGritLevel] = useState<number>(1);
@@ -37,6 +35,25 @@ export default function ChatPage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [attachments, setAttachments] = useState<{name: string, url: string}[]>([]);
   const [documentTexts, setDocumentTexts] = useState<{name: string, content: string}[]>([]);
+  const [isHandoffRunning, setIsHandoffRunning] = useState(false);
+
+  const handleHandoff = async () => {
+    setIsHandoffRunning(true);
+    try {
+      const res = await handoffChat(projectId);
+      if (res.success) {
+        const data = await getChatHistory(projectId);
+        setMessages(data);
+      } else {
+        alert('Der skete en fejl under handoff: ' + res.error);
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Der skete en netværksfejl under handoff.');
+    } finally {
+      setIsHandoffRunning(false);
+    }
+  };
 
   useEffect(() => {
     if (!isProjectIdLoaded) return;
@@ -232,7 +249,7 @@ export default function ChatPage() {
             </div>
           )}
 
-          {messages.map((m) => (
+          {messages.filter(m => m.role !== 'system').map((m) => (
              <div key={m.id} className={`flex items-start gap-4 ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                
                {m.role !== "user" && (
@@ -250,83 +267,33 @@ export default function ChatPage() {
                     {(m as any).content && (() => {
                       let contentStr = (m as any).content || '';
                       
-                      // Strip accidental markdown formatting and HTML entities around thought tags
-                      contentStr = contentStr.replace(/```(?:xml|html)?\s*\\?<thought>/gi, '<thought>');
-                      contentStr = contentStr.replace(/<\/thought>\s*```/gi, '</thought>');
-                      contentStr = contentStr.replace(/&lt;thought/gi, '<thought');
-                      contentStr = contentStr.replace(/&lt;\/thought/gi, '</thought');
-                      contentStr = contentStr.replace(/thought&gt;/gi, 'thought>');
-                      contentStr = contentStr.replace(/\\<thought\\?>/gi, '<thought>');
-                      contentStr = contentStr.replace(/\\<\/thought\\?>/gi, '</thought>');
-
-                      if (!contentStr.match(/<thought[^>]*>/i)) {
-                        return (
-                          <ReactMarkdown 
-                            remarkPlugins={[remarkGfm]}
-                            components={{
-                              h1: ({node, ...props}) => <h1 className="text-xl font-bold mt-4 mb-2 text-[#F59E0B]" {...props} />,
-                              h2: ({node, ...props}) => <h2 className="text-lg font-bold mt-4 mb-2 text-[#F59E0B]" {...props} />,
-                              h3: ({node, ...props}) => <h3 className="text-base font-bold mt-4 mb-2 text-[#F59E0B]" {...props} />,
-                              strong: ({node, ...props}) => <strong className="font-bold text-white" {...props} />,
-                              ul: ({node, ...props}) => <ul className="list-disc pl-4 my-2 space-y-1" {...props} />,
-                              ol: ({node, ...props}) => <ol className="list-decimal pl-4 my-2 space-y-1" {...props} />,
-                              li: ({node, ...props}) => <li className="pl-1" {...props} />,
-                              p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
-                              code: ({node, ...props}) => <code className="bg-slate-800/50 text-teal-400 px-1.5 py-0.5 rounded text-sm" {...props} />
-                            }}
-                          >
-                            {contentStr}
-                          </ReactMarkdown>
-                        );
-                      }
-
-                      const parts = contentStr.split(/<thought[^>]*>/i);
-                      const normalPreText = parts[0];
-                      const rest = parts[1] || '';
+                      // Aggressively normalize brackets
+                      contentStr = contentStr.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+                      contentStr = contentStr.replace(/\\</g, '<').replace(/\\>/g, '>');
                       
-                      let thoughtText = '';
-                      let normalPostText = '';
-
-                      if (rest.match(/<\/thought[^>]*>/i)) {
-                          const splitRest = rest.split(/<\/thought[^>]*>/i);
-                          thoughtText = splitRest[0];
-                          normalPostText = splitRest.slice(1).join('</thought>'); // fallback joining if multiple
-                      } else {
-                          thoughtText = rest;
-                      }
-
-                      const MarkdownBlock = ({ text }: { text: string }) => (
-                        <ReactMarkdown 
-                            remarkPlugins={[remarkGfm]}
-                            components={{
-                              h1: ({node, ...props}) => <h1 className="text-xl font-bold mt-4 mb-2 text-[#F59E0B]" {...props} />,
-                              h2: ({node, ...props}) => <h2 className="text-lg font-bold mt-4 mb-2 text-[#F59E0B]" {...props} />,
-                              h3: ({node, ...props}) => <h3 className="text-base font-bold mt-4 mb-2 text-[#F59E0B]" {...props} />,
-                              strong: ({node, ...props}) => <strong className="font-bold text-white" {...props} />,
-                              ul: ({node, ...props}) => <ul className="list-disc pl-4 my-2 space-y-1" {...props} />,
-                              ol: ({node, ...props}) => <ol className="list-decimal pl-4 my-2 space-y-1" {...props} />,
-                              li: ({node, ...props}) => <li className="pl-1" {...props} />,
-                              p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
-                              code: ({node, ...props}) => <code className="bg-slate-800/50 text-teal-400 px-1.5 py-0.5 rounded text-sm" {...props} />
-                            }}
-                          >
-                            {text}
-                        </ReactMarkdown>
-                      );
+                      // Aggressively remove the entire thought block
+                      contentStr = contentStr.replace(/<thought\b[^>]*>[\s\S]*?(?:<\/thought\b[^>]*>|$)/gi, '');
+                      
+                      // Trim any leading/trailing whitespace
+                      contentStr = contentStr.trim();
 
                       return (
-                        <>
-                          {normalPreText && <MarkdownBlock text={normalPreText} />}
-                          <div className="bg-[#0A0D16] border border-slate-700/50 rounded-xl p-4 my-4 shadow-inner">
-                              <div className="flex items-center gap-2 mb-2 text-slate-500 font-bold tracking-widest uppercase text-[10px]">
-                                  🧠 Drogons Meta-Tilstand
-                              </div>
-                              <div className="italic font-mono text-xs leading-relaxed whitespace-pre-wrap text-slate-400">
-                                {thoughtText}
-                              </div>
-                          </div>
-                          {normalPostText && <MarkdownBlock text={normalPostText} />}
-                        </>
+                        <ReactMarkdown 
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            h1: ({node, ...props}) => <h1 className="text-xl font-bold mt-4 mb-2 text-[#F59E0B]" {...props} />,
+                            h2: ({node, ...props}) => <h2 className="text-lg font-bold mt-4 mb-2 text-[#F59E0B]" {...props} />,
+                            h3: ({node, ...props}) => <h3 className="text-base font-bold mt-4 mb-2 text-[#F59E0B]" {...props} />,
+                            strong: ({node, ...props}) => <strong className="font-bold text-white" {...props} />,
+                            ul: ({node, ...props}) => <ul className="list-disc pl-4 my-2 space-y-1" {...props} />,
+                            ol: ({node, ...props}) => <ol className="list-decimal pl-4 my-2 space-y-1" {...props} />,
+                            li: ({node, ...props}) => <li className="pl-1" {...props} />,
+                            p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
+                            code: ({node, ...props}) => <code className="bg-slate-800/50 text-teal-400 px-1.5 py-0.5 rounded text-sm" {...props} />
+                          }}
+                        >
+                          {contentStr}
+                        </ReactMarkdown>
                       );
                     })()}
                     {(m as any).parts && (m as any).parts.map((p: any, i: number) => {
@@ -438,6 +405,15 @@ export default function ChatPage() {
             <LayoutTemplate className="w-4 h-4" />
             TEKNISK KRAVSPEC
           </Link>
+          
+          <button 
+            onClick={handleHandoff}
+            disabled={isHandoffRunning}
+            className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase hover:opacity-80 transition-opacity text-emerald-400 disabled:opacity-50"
+          >
+            {isHandoffRunning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            HANDOFF & NYT SPOR
+          </button>
           <Link href="/pitch" className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase hover:opacity-80 transition-opacity text-red-500">
             <Trophy className="w-4 h-4" />
             DRAGONS DEN
