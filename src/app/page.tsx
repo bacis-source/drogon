@@ -248,8 +248,15 @@ export default function ChatPage() {
                 }`}>
                   <div className="leading-relaxed whitespace-pre-wrap text-[15px] markdown-content">
                     {(m as any).content && (() => {
-                      const content = (m as any).content;
-                      if (!content.includes('<thought>')) {
+                      let contentStr = (m as any).content || '';
+                      
+                      // Strip accidental markdown formatting and HTML entities around thought tags
+                      contentStr = contentStr.replace(/```(?:xml|html)?\s*<thought>/gi, '<thought>');
+                      contentStr = contentStr.replace(/<\/thought>\s*```/gi, '</thought>');
+                      contentStr = contentStr.replace(/&lt;thought&gt;/gi, '<thought>');
+                      contentStr = contentStr.replace(/&lt;\/thought&gt;/gi, '</thought>');
+
+                      if (!contentStr.match(/<thought>/i)) {
                         return (
                           <ReactMarkdown 
                             remarkPlugins={[remarkGfm]}
@@ -265,22 +272,22 @@ export default function ChatPage() {
                               code: ({node, ...props}) => <code className="bg-slate-800/50 text-teal-400 px-1.5 py-0.5 rounded text-sm" {...props} />
                             }}
                           >
-                            {content}
+                            {contentStr}
                           </ReactMarkdown>
                         );
                       }
 
-                      const parts = content.split('<thought>');
+                      const parts = contentStr.split(/<thought>/i);
                       const normalPreText = parts[0];
                       const rest = parts[1] || '';
                       
                       let thoughtText = '';
                       let normalPostText = '';
 
-                      if (rest.includes('</thought>')) {
-                          const splitRest = rest.split('</thought>');
+                      if (rest.match(/<\/thought>/i)) {
+                          const splitRest = rest.split(/<\/thought>/i);
                           thoughtText = splitRest[0];
-                          normalPostText = splitRest.slice(1).join('</thought>'); // in case of multiple closing tags
+                          normalPostText = splitRest.slice(1).join('</thought>'); // fallback joining if multiple
                       } else {
                           thoughtText = rest;
                       }
