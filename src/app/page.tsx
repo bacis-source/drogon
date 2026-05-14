@@ -249,7 +249,17 @@ export default function ChatPage() {
             </div>
           )}
 
-          {messages.filter(m => m.role !== 'system').map((m) => (
+          {messages.filter(m => m.role !== 'system').map((m) => {
+             const cleanContent = (text: string) => {
+                if (!text) return '';
+                let str = text;
+                str = str.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+                str = str.replace(/\\</g, '<').replace(/\\>/g, '>');
+                str = str.replace(/<thought\b[^>]*>[\s\S]*?(?:<\/thought\b[^>]*>|$)/gi, '');
+                return str.trim();
+             };
+
+             return (
              <div key={m.id} className={`flex items-start gap-4 ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                
                {m.role !== "user" && (
@@ -265,18 +275,8 @@ export default function ChatPage() {
                 }`}>
                   <div className="leading-relaxed whitespace-pre-wrap text-[15px] markdown-content">
                     {(m as any).content && (() => {
-                      let contentStr = (m as any).content || '';
-                      
-                      // Aggressively normalize brackets
-                      contentStr = contentStr.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-                      contentStr = contentStr.replace(/\\</g, '<').replace(/\\>/g, '>');
-                      
-                      // Aggressively remove the entire thought block
-                      contentStr = contentStr.replace(/<thought\b[^>]*>[\s\S]*?(?:<\/thought\b[^>]*>|$)/gi, '');
-                      
-                      // Trim any leading/trailing whitespace
-                      contentStr = contentStr.trim();
-
+                      const contentStr = cleanContent((m as any).content);
+                      if (!contentStr) return null;
                       return (
                         <ReactMarkdown 
                           remarkPlugins={[remarkGfm]}
@@ -298,13 +298,21 @@ export default function ChatPage() {
                     })()}
                     {(m as any).parts && (m as any).parts.map((p: any, i: number) => {
                        if (p.type === 'image') return <img key={i} src={p.image} className="max-w-md w-full rounded-xl mt-3 mb-2 border border-slate-700/50 block shadow-lg object-contain bg-[#0E1320]" alt="attachment" />;
-                       if (p.type === 'text' && !(m as any).content) return <div key={i}><ReactMarkdown remarkPlugins={[remarkGfm]}>{p.text}</ReactMarkdown></div>;
+                       if (p.type === 'text' && !(m as any).content) {
+                          const contentStr = cleanContent(p.text);
+                          if (!contentStr) return null;
+                          return (
+                            <div key={i}>
+                              <ReactMarkdown remarkPlugins={[remarkGfm]}>{contentStr}</ReactMarkdown>
+                            </div>
+                          );
+                       }
                        return null;
                     })}
                   </div>
                </div>
              </div>
-          ))}
+          );})}
 
           {isLoading && (
             <div className="flex justify-start items-start gap-4">
