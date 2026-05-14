@@ -4,6 +4,9 @@ import { LayoutTemplate, Lightbulb, Zap, ArrowRight, Target, Activity, ShieldAle
 import Link from "next/link";
 import { EditableBlock } from "./editable-block";
 import { getAccessibleProjects } from "@/lib/projects";
+import { CanvasClientView } from "./components/canvas-client-view";
+import { DashboardView } from "./components/dashboard-view";
+import { ExecutionBoardView } from "./components/execution-board-view";
 
 export default async function CanvasPage() {
   const supabase = await createClient();
@@ -37,125 +40,165 @@ export default async function CanvasPage() {
 
   const leanCanvas = project.lean_canvas || {};
 
-  return (
-    <div className="flex-1 h-full overflow-y-auto bg-[#0A0F1E] nice-scrollbar flex flex-col">
-      {/* Header */}
-      <header className="p-8 pb-4 border-b border-slate-800/60 bg-[#0B0F19]/50 sticky top-0 z-20 backdrop-blur-md flex-none">
-        <div className="flex items-center gap-3 mb-2 opacity-80">
-          <LayoutTemplate className="w-4 h-4 text-[#F59E0B]" />
-          <span className="text-[10px] font-bold tracking-widest text-[#F59E0B] uppercase">INTERACTIVE LEAN CANVAS</span>
-        </div>
-        <div className="flex justify-between items-end">
-          <h1 className="text-4xl font-extrabold text-white tracking-tight uppercase">{project.name}</h1>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-800/40 border border-slate-700/50">
-             <Zap className="w-3.5 h-3.5 text-amber-500" />
-             <span className="text-[9px] font-bold tracking-widest text-slate-400 uppercase">AI Synced</span>
-          </div>
-        </div>
-      </header>
+  // Transform Supabase project budget & execution plan into Legacy DashboardData format
+  let dashboardData: any = null;
+  if (project.budget || project.execution_plan) {
+    const budget = project.budget || { capex: [], opex: [], revenue: [] };
+    const capexTotal = (budget.capex || []).reduce((acc: number, item: any) => acc + item.amount, 0);
+    const opexTotal = (budget.opex || []).reduce((acc: number, item: any) => acc + item.amount, 0);
+    const revTotal = (budget.revenue || []).reduce((acc: number, item: any) => acc + item.amount, 0);
+    
+    // Simulate 12 months
+    const financials = [];
+    let cumulative = 500000; // Mock initial investment
+    for (let i = 1; i <= 12; i++) {
+        const rev = revTotal * (1 + (i * 0.1)); // 10% growth per month mock
+        const exp = i === 1 ? opexTotal + capexTotal : opexTotal;
+        const cashflow = rev - exp;
+        cumulative += cashflow;
+        financials.push({
+            month: `Måned ${i}`,
+            revenue: Math.round(rev),
+            expenses: Math.round(exp),
+            cashflow: Math.round(cashflow),
+            cumulativeCash: Math.round(cumulative)
+        });
+    }
 
-      {/* Canvas Grid Container */}
-      <div className="flex-1 p-6 lg:p-8 min-h-0">
-        <div className="h-full min-h-[800px] grid grid-cols-10 grid-rows-3 gap-4">
-          
-          {/* Top Row: 5 main columns */}
-          
-          {/* Problem (Col 1-2, Span 2 Rows) */}
-          <div className="col-span-10 lg:col-span-2 row-span-1 lg:row-span-2">
-            <EditableBlock 
-              projectId={project.id}
-              blockKey="problem"
-              title="Problem"
-              content={leanCanvas.problem || ''}
-              icon={<Target className="w-4 h-4 text-red-400" />}
-            />
-          </div>
+    const tasks = (project.execution_plan || []).map((t: any, i: number) => ({
+        id: `task-${i}`,
+        title: t.task || t.title || 'Opgave',
+        status: (t.status === 'DONE' || t.status === 'done') ? 'done' : 
+                (t.status === 'IN_PROGRESS' || t.status === 'doing') ? 'doing' : 'todo',
+        priority: 'medium',
+        category: t.phase || 'Generel'
+    }));
 
-          {/* Solution & Key Metrics (Col 3-4, 1 Row each) */}
-          <div className="col-span-10 lg:col-span-2 lg:row-span-1">
-            <EditableBlock 
-              projectId={project.id}
-              blockKey="solution"
-              title="Løsning"
-              content={leanCanvas.solution || ''}
-              icon={<Lightbulb className="w-4 h-4 text-emerald-400" />}
-            />
-          </div>
-          <div className="col-span-10 lg:col-span-2 lg:col-start-3 lg:row-start-2 lg:row-span-1">
-            <EditableBlock 
-              projectId={project.id}
-              blockKey="key_metrics"
-              title="Nøgletal (Metrics)"
-              content={leanCanvas.key_metrics || ''}
-              icon={<Activity className="w-4 h-4 text-blue-400" />}
-            />
-          </div>
+    dashboardData = {
+        financials,
+        kpi: {
+            cac: 500,
+            ltv: 2500,
+            burnRate: opexTotal,
+            runway: Math.round(cumulative / Math.max(1, (opexTotal - revTotal))),
+            riskScore: 35,
+            protectionScore: 80
+        },
+        segments: [],
+        competitors: [],
+        gritLevel: 3,
+        tasks
+    };
+  }
 
-          {/* UVP (Col 5-6, Span 2 Rows) */}
-          <div className="col-span-10 lg:col-span-2 lg:col-start-5 lg:row-start-1 lg:row-span-2">
-            <EditableBlock 
-              projectId={project.id}
-              blockKey="uvp"
-              title="Unik Værditilbud"
-              content={leanCanvas.uvp || ''}
-              icon={<Zap className="w-4 h-4 text-[#F59E0B]" />}
-              className="border-[#F59E0B]/30 shadow-[0_0_30px_rgba(245,158,11,0.05)]"
-            />
-          </div>
+  const leanCanvasGrid = (
+    <div className="h-full min-h-[800px] grid grid-cols-10 grid-rows-3 gap-4">
+      {/* Top Row: 5 main columns */}
+      {/* Problem (Col 1-2, Span 2 Rows) */}
+      <div className="col-span-10 lg:col-span-2 row-span-1 lg:row-span-2">
+        <EditableBlock 
+          projectId={project.id}
+          blockKey="problem"
+          title="Problem"
+          content={leanCanvas.problem || ''}
+          icon={<Target className="w-4 h-4 text-red-400" />}
+        />
+      </div>
 
-          {/* Unfair Advantage & Channels (Col 7-8, 1 Row each) */}
-          <div className="col-span-10 lg:col-span-2 lg:col-start-7 lg:row-start-1 lg:row-span-1">
-            <EditableBlock 
-              projectId={project.id}
-              blockKey="unfair_advantage"
-              title="Urimelig Fordel (IP)"
-              content={leanCanvas.unfair_advantage || project.ip_strategy || ''}
-              icon={<ShieldAlert className="w-4 h-4 text-purple-400" />}
-            />
-          </div>
-          <div className="col-span-10 lg:col-span-2 lg:col-start-7 lg:row-start-2 lg:row-span-1">
-            <EditableBlock 
-              projectId={project.id}
-              blockKey="channels"
-              title="Kanaler"
-              content={leanCanvas.channels || ''}
-              icon={<MessagesSquare className="w-4 h-4 text-pink-400" />}
-            />
-          </div>
+      {/* Solution & Key Metrics (Col 3-4, 1 Row each) */}
+      <div className="col-span-10 lg:col-span-2 lg:row-span-1">
+        <EditableBlock 
+          projectId={project.id}
+          blockKey="solution"
+          title="Løsning"
+          content={leanCanvas.solution || ''}
+          icon={<Lightbulb className="w-4 h-4 text-emerald-400" />}
+        />
+      </div>
+      <div className="col-span-10 lg:col-span-2 lg:col-start-3 lg:row-start-2 lg:row-span-1">
+        <EditableBlock 
+          projectId={project.id}
+          blockKey="key_metrics"
+          title="Nøgletal (Metrics)"
+          content={leanCanvas.key_metrics || ''}
+          icon={<Activity className="w-4 h-4 text-blue-400" />}
+        />
+      </div>
 
-          {/* Customer Segments (Col 9-10, Span 2 Rows) */}
-          <div className="col-span-10 lg:col-span-2 lg:col-start-9 lg:row-start-1 lg:row-span-2">
-            <EditableBlock 
-              projectId={project.id}
-              blockKey="customer_segments"
-              title="Målgruppe"
-              content={leanCanvas.customer_segments || ''}
-              icon={<Users className="w-4 h-4 text-cyan-400" />}
-            />
-          </div>
+      {/* UVP (Col 5-6, Span 2 Rows) */}
+      <div className="col-span-10 lg:col-span-2 lg:col-start-5 lg:row-start-1 lg:row-span-2">
+        <EditableBlock 
+          projectId={project.id}
+          blockKey="uvp"
+          title="Unik Værditilbud"
+          content={leanCanvas.uvp || ''}
+          icon={<Zap className="w-4 h-4 text-amber-400" />}
+          isHighlight
+        />
+      </div>
 
-          {/* Bottom Row: Cost & Revenue (Col 1-5 and 6-10) */}
-          <div className="col-span-10 lg:col-span-5 lg:row-start-3">
-            <EditableBlock 
-              projectId={project.id}
-              blockKey="cost_structure"
-              title="Omkostninger"
-              content={leanCanvas.cost_structure || ''}
-              icon={<TrendingDown className="w-4 h-4 text-rose-400" />}
-            />
-          </div>
-          <div className="col-span-10 lg:col-span-5 lg:col-start-6 lg:row-start-3">
-            <EditableBlock 
-              projectId={project.id}
-              blockKey="revenue_streams"
-              title="Indtægtskilder"
-              content={leanCanvas.revenue_streams || project.business_model || ''}
-              icon={<Coins className="w-4 h-4 text-emerald-500" />}
-            />
-          </div>
+      {/* Unfair Advantage & Channels (Col 7-8, 1 Row each) */}
+      <div className="col-span-10 lg:col-span-2 lg:col-start-7 lg:row-start-1 lg:row-span-1">
+        <EditableBlock 
+          projectId={project.id}
+          blockKey="unfair_advantage"
+          title="Unfair Fordel"
+          content={leanCanvas.unfair_advantage || ''}
+          icon={<ShieldAlert className="w-4 h-4 text-purple-400" />}
+        />
+      </div>
+      <div className="col-span-10 lg:col-span-2 lg:col-start-7 lg:row-start-2 lg:row-span-1">
+        <EditableBlock 
+          projectId={project.id}
+          blockKey="channels"
+          title="Kanaler"
+          content={leanCanvas.channels || ''}
+          icon={<Rocket className="w-4 h-4 text-pink-400" />}
+        />
+      </div>
 
-        </div>
+      {/* Customer Segments (Col 9-10, Span 2 Rows) */}
+      <div className="col-span-10 lg:col-span-2 lg:col-start-9 lg:row-start-1 lg:row-span-2">
+        <EditableBlock 
+          projectId={project.id}
+          blockKey="customer_segments"
+          title="Kundesegmenter"
+          content={leanCanvas.customer_segments || ''}
+          icon={<Users className="w-4 h-4 text-indigo-400" />}
+        />
+      </div>
+
+      {/* Bottom Row: 2 halves */}
+      {/* Cost Structure (Col 1-5, Row 3) */}
+      <div className="col-span-10 lg:col-span-5 lg:col-start-1 lg:row-start-3">
+        <EditableBlock 
+          projectId={project.id}
+          blockKey="cost_structure"
+          title="Omkostningsstruktur"
+          content={leanCanvas.cost_structure || ''}
+          icon={<TrendingDown className="w-4 h-4 text-orange-400" />}
+        />
+      </div>
+
+      {/* Revenue Streams (Col 6-10, Row 3) */}
+      <div className="col-span-10 lg:col-span-5 lg:col-start-6 lg:row-start-3">
+        <EditableBlock 
+          projectId={project.id}
+          blockKey="revenue_streams"
+          title="Indtægtsstrømme"
+          content={leanCanvas.revenue_streams || ''}
+          icon={<Coins className="w-4 h-4 text-green-400" />}
+        />
       </div>
     </div>
+  );
+
+  return (
+    <CanvasClientView 
+      project={project}
+      leanCanvasGrid={leanCanvasGrid}
+      dashboardView={<DashboardView data={dashboardData} />}
+      executionView={<ExecutionBoardView data={dashboardData} />}
+    />
   );
 }

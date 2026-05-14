@@ -109,6 +109,16 @@ export function AppSidebar({ userEmail = "MASTER ARCHITECT", userInitial = "M", 
 
               <SidebarMenuItem>
                 <SidebarMenuButton 
+                  onClick={() => router.push('/canvas')}
+                  className={`w-full hover:bg-slate-800/50 rounded-xl h-10 justify-start font-bold uppercase tracking-wider text-xs flex items-center gap-3 transition-colors ${pathname === '/canvas' ? 'bg-[#F59E0B]/20 text-[#F59E0B] border-l-2 border-[#F59E0B]' : 'text-slate-400 hover:text-[#F59E0B]'}`}
+                >
+                  <LayoutTemplate className="w-4 h-4 ml-1" />
+                  PROJEKT LÆRRED
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton 
                   onClick={() => router.push('/business-plan')}
                   className={`w-full hover:bg-slate-800/50 rounded-xl h-10 justify-start font-bold uppercase tracking-wider text-xs flex items-center gap-3 transition-colors ${pathname === '/business-plan' ? 'bg-emerald-900/20 text-emerald-400 border-l-2 border-emerald-500' : 'text-slate-400 hover:text-emerald-300'}`}
                 >
@@ -124,16 +134,6 @@ export function AppSidebar({ userEmail = "MASTER ARCHITECT", userInitial = "M", 
                 >
                   <Compass className="w-4 h-4 ml-1" />
                   ARKITEKTUR
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  onClick={() => router.push('/execution')}
-                  className={`w-full hover:bg-slate-800/50 rounded-xl h-10 justify-start font-bold uppercase tracking-wider text-xs flex items-center gap-3 transition-colors ${pathname === '/execution' ? 'bg-emerald-900/20 text-emerald-400 border-l-2 border-emerald-500' : 'text-slate-400 hover:text-emerald-300'}`}
-                >
-                  <CheckSquare className="w-4 h-4 ml-1" />
-                  EXECUTION
                 </SidebarMenuButton>
               </SidebarMenuItem>
               
