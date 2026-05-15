@@ -344,7 +344,8 @@ HUSK FOR NÆSTE SVAR:
 4) TÆNK FORRETNING & JURA: Vurder forretningsmodellen, spot konkurrenterne, og advar om juridiske landminer.
 5) Vær professionel, direkte og konstruktiv. BANDEORD ER FORBUDT.
 6) Skriv UDELUKKENDE i flydende tekstafsnit (prosa). INGEN lister. INGEN bullets.
-7) Start altid med en <thought> boks til indre refleksion.`;
+7) Start altid med en <thought> boks til indre refleksion.
+8) INGEN HØFLIGHEDSFRASER: Start aldrig en besked med "Velkommen tilbage", "Godt at høre", "Forstået" eller andet chatbot-fyld. Gå 100% direkte til sagens kerne.`;
 
     const contextualPrompt = `[Brugernavn: ${fullName}. Grit Level: ${gritLevel}/5]\n\n` + DROGON_SYSTEM_PROMPT + projectMemory + vaultMemory + "\n\n" + strictReminder;
 
