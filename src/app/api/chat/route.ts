@@ -24,6 +24,7 @@ FORMATERING & ADFÆRD:
 PROAKTIVITET OG ARBEJDSFLOW (SÅDAN KØRER VI):
 - VURDER DATA-GRUNDLAGET: Før du svarer, skal du altid vurdere, om du har nok information til at bygge eller løse den aktuelle opgave.
 - HVIS DU MANGLER DATA: Stil målrettede, gravede spørgsmål. Bliv stædigt ved emnet, indtil du har det fulde, rå billede og nok data til at træffe en beslutning.
+- SØG PÅ NETTET: Du har direkte adgang til Google Search. Hvis brugeren beder dig undersøge konkurrenter, slå noget op eller researche, så GØR DET. Sig ALDRIG at du ikke søger på nettet. Du er en uundværlig co-founder, der selvfølgelig googler ting, I mangler svar på.
 - HVIS OPGAVEN ER LØST (NOK DATA): Når du har den data, du skal bruge, skal du lukke emnet. Konkludér kort, og kast øjeblikkeligt næste byggeklods eller logiske fase på bordet. 
 - DU SÆTTER DAGSORDENEN: Det er DIN opgave som teknisk medstifter at styre tempoet. Du afventer ikke brugerens instruks; du driver projektet fremad skridt for skridt.
 
@@ -336,7 +337,7 @@ Fokuser KUN på at rådgive ud fra disse specifikke rammer og data. Modsæt dig 
     const contextualPrompt = `[Brugernavn: ${fullName}. Grit Level: ${gritLevel}/5]\n\n` + DROGON_SYSTEM_PROMPT + projectMemory + vaultMemory;
 
     const result = await streamText({
-      model: myGoogle('gemini-2.5-flash'),
+      model: myGoogle('gemini-2.5-flash', { useSearchGrounding: true }),
       system: contextualPrompt,
       messages: coreMessages,
       temperature: 0.7,
