@@ -88,10 +88,17 @@ export async function handoffChat(projectId?: string) {
     const myOpenAI = createOpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
     // Generate Handoff Summary
-    const { text: summary } = await generateText({
-      model: myOpenAI('gpt-4o-mini'),
-      prompt: `Gennemlæs følgende samtale og træk den absolutte essens ud (konklusioner, valgt teknologi, strategiske beslutninger og kontekst). Ignorer smalltalk og meta-diskussion. Skriv en meget tæt og professionel opsummering:\n\n${conversation}`,
-    })
+    let summary = '';
+    try {
+      const { text } = await generateText({
+        model: myOpenAI('gpt-4o-mini'),
+        prompt: `Gennemlæs følgende samtale og træk den absolutte essens ud (konklusioner, valgt teknologi, strategiske beslutninger og kontekst). Ignorer smalltalk og meta-diskussion. Skriv en meget tæt og professionel opsummering:\n\n${conversation}`,
+      });
+      summary = text;
+    } catch (err) {
+      console.warn("Handoff Summarization failed (likely safety filter). Forcing archive.", err);
+      summary = "Systemet blev tvunget til at nød-arkivere den forrige tråd på grund af sikkerhedsblokeringer i det underliggende sprogmodul. Konteksten er nulstillet, og chatten er nu renset for fejl.";
+    }
 
     // Archive old messages
     let archiveQuery = supabase
