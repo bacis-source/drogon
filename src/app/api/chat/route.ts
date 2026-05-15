@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { streamText, generateObject, embed, generateText } from 'ai'
-import { createOpenAI } from '@ai-sdk/openai'
+import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { createClient } from '@/lib/supabase/server'
 import { getAccessibleProjects } from '@/lib/projects'
 import { z } from 'zod'
@@ -78,7 +78,7 @@ export async function POST(req: Request) {
       return new Response('Unauthorized Access. Please Authenticate via /login.', { status: 401 })
     }
 
-    const myOpenAI = createOpenAI({ apiKey: process.env.OPENAI_API_KEY })
+    const myGoogle = createGoogleGenerativeAI({ apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY })
     const lastMessage = messages[messages.length - 1]
     
     const coreMessages = messages.map((msg: any) => {
@@ -354,7 +354,7 @@ HUSK FOR NÆSTE SVAR:
     const contextualPrompt = `[Brugernavn: ${fullName}. Grit Level: ${gritLevel}/5]\n\n` + DROGON_SYSTEM_PROMPT + projectMemory + vaultMemory;
 
     const result = await streamText({
-      model: myOpenAI('gpt-4o'),
+      model: myGoogle('gemini-1.5-pro-latest'),
       system: contextualPrompt,
       messages: coreMessages,
       temperature: 0.7,

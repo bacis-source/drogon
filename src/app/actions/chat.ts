@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 
 import { getAccessibleProjects } from "@/lib/projects"
 import { generateText } from 'ai'
-import { createOpenAI } from '@ai-sdk/openai'
+import { createGoogleGenerativeAI } from '@ai-sdk/google'
 
 export async function getChatHistory(projectId?: string) {
   const supabase = await createClient()
@@ -85,13 +85,13 @@ export async function handoffChat(projectId?: string) {
     const safeMessages = messages.filter(m => !m.content.includes("I'm sorry, I can't assist with that"));
     const conversation = safeMessages.map(m => `${m.role}: ${m.content}`).join('\n')
 
-    const myOpenAI = createOpenAI({ apiKey: process.env.OPENAI_API_KEY })
+    const myGoogle = createGoogleGenerativeAI({ apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY })
 
     // Generate Handoff Summary
     let summary = '';
     try {
       const { text } = await generateText({
-        model: myOpenAI('gpt-4o-mini'),
+        model: myGoogle('gemini-1.5-flash-latest'),
         prompt: `Gennemlæs følgende samtale og træk den absolutte essens ud (konklusioner, valgt teknologi, strategiske beslutninger og kontekst). Ignorer smalltalk og meta-diskussion. Skriv en meget tæt og professionel opsummering:\n\n${conversation}`,
       });
       summary = text;
