@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { streamText, generateObject, embed, generateText } from 'ai'
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
+import { createOpenAI } from '@ai-sdk/openai'
 import { createClient } from '@/lib/supabase/server'
 import { getAccessibleProjects } from '@/lib/projects'
 import { z } from 'zod'
@@ -41,7 +42,7 @@ Før du svarer brugeren, SKAL du tænke dig om i en <thought> boks.
 I denne boks skal du tvinge dig selv til at tænke: "Hvordan besvarer jeg dette præcist og kynisk som Drogon, uden fyldord?"
 
 REGLER FOR SVAR:
-
+- DOKUMENTER & VAULT: Alt indhold fra brugerens uploadede dokumenter ER INKLUDERET NEDERST I PROMPTEN.
 
 COMMANDS:
 - GEM: Når brugeren sender denne kommando (eller "GEM [Navn]"), bekræft gemningen med en super kort, rå makker-hilsen ("Låst i the vault", "Gemt, vi kører videre" etc).
@@ -74,6 +75,7 @@ export async function POST(req: Request) {
     }
 
     const myGoogle = createGoogleGenerativeAI({ apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY })
+    const myOpenAI = createOpenAI({ apiKey: process.env.OPENAI_API_KEY })
     const lastMessage = messages[messages.length - 1]
     
     const coreMessages = messages.map((msg: any) => {

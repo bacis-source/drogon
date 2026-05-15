@@ -81,9 +81,7 @@ export async function handoffChat(projectId?: string) {
 
     if (!messages || messages.length === 0) return { success: true }
     
-    // Filter out any safety messages that might trigger OpenAI's moderation API again during summarization
-    const safeMessages = messages.filter(m => !m.content.includes("I'm sorry, I can't assist with that"));
-    const conversation = safeMessages.map(m => `${m.role}: ${m.content}`).join('\n')
+    const conversation = messages.map(m => `${m.role}: ${m.content}`).join('\n')
 
     const myGoogle = createGoogleGenerativeAI({ apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY })
 
@@ -96,8 +94,8 @@ export async function handoffChat(projectId?: string) {
       });
       summary = text;
     } catch (err) {
-      console.warn("Handoff Summarization failed (likely safety filter). Forcing archive.", err);
-      summary = "Systemet blev tvunget til at nød-arkivere den forrige tråd på grund af sikkerhedsblokeringer i det underliggende sprogmodul. Konteksten er nulstillet, og chatten er nu renset for fejl.";
+      console.warn("Handoff Summarization failed. Forcing archive.", err);
+      summary = "Systemet blev tvunget til at nød-arkivere den forrige tråd. Konteksten er nulstillet, og chatten er nu renset for fejl.";
     }
 
     // Archive old messages
