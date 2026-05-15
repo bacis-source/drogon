@@ -346,12 +346,7 @@ HUSK FOR NÆSTE SVAR:
 6) Skriv UDELUKKENDE i flydende tekstafsnit (prosa). INGEN lister. INGEN bullets.
 7) Start altid med en <thought> boks til indre refleksion.`;
 
-    coreMessages.push({
-      role: 'system',
-      content: strictReminder
-    });
-
-    const contextualPrompt = `[Brugernavn: ${fullName}. Grit Level: ${gritLevel}/5]\n\n` + DROGON_SYSTEM_PROMPT + projectMemory + vaultMemory;
+    const contextualPrompt = `[Brugernavn: ${fullName}. Grit Level: ${gritLevel}/5]\n\n` + DROGON_SYSTEM_PROMPT + projectMemory + vaultMemory + "\n\n" + strictReminder;
 
     const result = await streamText({
       model: myGoogle('gemini-1.5-pro-latest'),
