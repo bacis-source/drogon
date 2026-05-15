@@ -349,7 +349,7 @@ HUSK FOR NÆSTE SVAR:
     const contextualPrompt = `[Brugernavn: ${fullName}. Grit Level: ${gritLevel}/5]\n\n` + DROGON_SYSTEM_PROMPT + projectMemory + vaultMemory + "\n\n" + strictReminder;
 
     const result = await streamText({
-      model: myGoogle('gemini-1.5-pro-latest'),
+      model: myGoogle('gemini-1.5-pro'),
       system: contextualPrompt,
       messages: coreMessages,
       temperature: 0.7,

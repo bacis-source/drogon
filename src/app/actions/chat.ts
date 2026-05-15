@@ -91,7 +91,7 @@ export async function handoffChat(projectId?: string) {
     let summary = '';
     try {
       const { text } = await generateText({
-        model: myGoogle('gemini-1.5-flash-latest'),
+        model: myGoogle('gemini-1.5-flash'),
         prompt: `Gennemlæs følgende samtale og træk den absolutte essens ud (konklusioner, valgt teknologi, strategiske beslutninger og kontekst). Ignorer smalltalk og meta-diskussion. Skriv en meget tæt og professionel opsummering:\n\n${conversation}`,
       });
       summary = text;
