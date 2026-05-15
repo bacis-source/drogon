@@ -19,7 +19,7 @@ Drogon is built upon the **Antigravity Starter Kit** stack:
 - **Framework:** Next.js 16 (App Router) with full Server and Client component hydration.
 - **Styling:** Custom Antigravity Deep Obsidian `#060913` & Amber `#F59E0B` variables via Tailwind v4.
 - **Database & Auth:** Supabase SSR with specific Postgres RLS capabilities.
-- **AI Engine:** `@ai-sdk/openai` running `gpt-4o` via secure backend-proxy.
+- **AI Engine:** `@ai-sdk/google` running `gemini-2.5-flash` (upgraded from OpenAI to bypass rigid safety filters and harness massive context windows).
 - **Hosting & CI/CD:** Vercel (Edge-caching).
 
 ### Key Features
@@ -36,6 +36,7 @@ To ensure a stable, buffered-free data stream between Vercel and the UI:
 - **Edge Runtime:** The chat API route (`src/app/api/chat/route.ts`) is strictly forced onto `runtime = 'edge'` to prevent Node.js layer buffering.
 - **Synchronous Preflight:** Because an asynchronous streaming error (like an invalid OpenAI key during stream hook instantiation) can silently truncate with a 200 OK, a synchronous `generateObject` preflight flight checks the validity of API credentials.
 - **Native UI Stream Interception:** When Drogon executes internal backend tasks (like interacting with Supabase databases during a GEM), the completion is seamlessly handed over to `streamText()` rather than mocking raw chunk strings. This forces full compliance with Vercel's strict `toUIMessageStreamResponse()` protocol.
+- **Gemini Architecture Compatibility:** The system prompt and message array are strictly mapped to Google's Generative Language API schema, avoiding unsupported parameters like `frequencyPenalty` to ensure stable runtime.
 
 ## Local Boot Requirements
 
@@ -44,7 +45,7 @@ To initiate the node locally:
 1. Navigate to the `src` folder. The workspace root is `src/`.
 2. Copy `.env.example` to `.env.local`.
 3. Hardcode your Supabase URL and Publishable keys.
-4. Slot an operational `OPENAI_API_KEY` into `.env.local` to awaken the core routing logic.
+4. Slot an operational `GOOGLE_GENERATIVE_AI_API_KEY` into `.env.local` to awaken the core routing logic (ensure the key has access to Gemini 2.5 models).
 5. Run `npm run dev` inside `src` and navigate to [http://localhost:3000](http://localhost:3000).
 
 ---
