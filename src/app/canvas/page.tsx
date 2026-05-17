@@ -8,7 +8,7 @@ import { CanvasClientView } from "./components/canvas-client-view";
 import { DashboardView } from "./components/dashboard-view";
 import { ExecutionBoardView } from "./components/execution-board-view";
 
-export default async function CanvasPage() {
+export default async function CanvasPage({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -17,7 +17,14 @@ export default async function CanvasPage() {
   }
 
   const projects = await getAccessibleProjects(supabase, user.id, user.email);
-  const project = projects.length > 0 ? projects[0] : null;
+  
+  const projectIdParam = searchParams.project as string | undefined;
+  let project = projects.length > 0 ? projects[0] : null;
+  
+  if (projectIdParam) {
+    const selected = projects.find(p => p.id === projectIdParam);
+    if (selected) project = selected;
+  }
 
   if (!project) {
     return (
@@ -196,6 +203,7 @@ export default async function CanvasPage() {
   return (
     <CanvasClientView 
       project={project}
+      allProjects={projects}
       leanCanvasGrid={leanCanvasGrid}
       dashboardView={<DashboardView data={dashboardData} />}
       executionView={<ExecutionBoardView data={dashboardData} />}

@@ -4,8 +4,9 @@ import { Cpu, Server, Shield, Cloud, ArrowRight, Database, MonitorSmartphone, Gi
 import Link from "next/link";
 import { getAccessibleProjects } from "@/lib/projects";
 import { EditableArchitectureBlock } from "./editable-block";
+import { ProjectSelector } from "@/components/project-selector";
 
-export default async function ArchitecturePage() {
+export default async function ArchitecturePage({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -14,7 +15,14 @@ export default async function ArchitecturePage() {
   }
 
   const projects = await getAccessibleProjects(supabase, user.id, user.email);
-  const project = projects.length > 0 ? projects[0] : null;
+  
+  const projectIdParam = searchParams.project as string | undefined;
+  let project = projects.length > 0 ? projects[0] : null;
+  
+  if (projectIdParam) {
+    const selected = projects.find(p => p.id === projectIdParam);
+    if (selected) project = selected;
+  }
 
   if (!project) {
     return (
@@ -46,10 +54,13 @@ export default async function ArchitecturePage() {
           <span className="text-[10px] font-bold tracking-widest text-blue-500 uppercase">THE TECHNICAL BLUEPRINT</span>
         </div>
         <div className="flex justify-between items-end">
-          <h1 className="text-4xl font-extrabold text-white tracking-tight uppercase drop-shadow-[0_0_15px_rgba(59,130,246,0.2)]">{project.name}</h1>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-950/40 border border-blue-800/50">
-             <Zap className="w-3.5 h-3.5 text-blue-400" />
-             <span className="text-[9px] font-bold tracking-widest text-blue-300 uppercase">AI Synced</span>
+          <h1 className="text-4xl font-extrabold text-white tracking-tight uppercase drop-shadow-[0_0_15px_rgba(59,130,246,0.2)] max-w-2xl truncate">{project.name}</h1>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-950/40 border border-blue-800/50">
+               <Zap className="w-3.5 h-3.5 text-blue-400" />
+               <span className="text-[9px] font-bold tracking-widest text-blue-300 uppercase">AI Synced</span>
+            </div>
+            <ProjectSelector projects={projects} activeProjectId={project.id} />
           </div>
         </div>
       </header>

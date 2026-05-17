@@ -3,14 +3,17 @@
 import React, { useState } from 'react';
 import { LayoutTemplate, Activity, KanbanSquare, CheckCircle } from 'lucide-react';
 
+import { ProjectSelector } from '@/components/project-selector';
+
 interface CanvasClientViewProps {
   project: any;
+  allProjects: any[];
   leanCanvasGrid: React.ReactNode;
   dashboardView: React.ReactNode;
   executionView: React.ReactNode;
 }
 
-export function CanvasClientView({ project, leanCanvasGrid, dashboardView, executionView }: CanvasClientViewProps) {
+export function CanvasClientView({ project, allProjects, leanCanvasGrid, dashboardView, executionView }: CanvasClientViewProps) {
   const [activeTab, setActiveTab] = useState<'canvas' | 'dashboard' | 'execution'>('canvas');
 
   return (
@@ -22,7 +25,8 @@ export function CanvasClientView({ project, leanCanvasGrid, dashboardView, execu
           <span className="text-[10px] font-bold tracking-widest text-[#F59E0B] uppercase">PROJEKT ARBEJDSRUM</span>
         </div>
         <div className="flex justify-between items-end mb-6">
-          <h1 className="text-4xl font-extrabold text-white tracking-tight uppercase">{project.name}</h1>
+          <h1 className="text-4xl font-extrabold text-white tracking-tight uppercase max-w-2xl truncate">{project.name}</h1>
+          <ProjectSelector projects={allProjects} activeProjectId={project.id} />
         </div>
 
         {/* Custom Tabs */}

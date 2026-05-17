@@ -5,8 +5,9 @@ import Link from "next/link";
 import { getAccessibleProjects } from "@/lib/projects";
 import { EditableBusinessPlanBlock } from "./editable-block";
 import { BudgetTab } from "./budget-tab";
+import { ProjectSelector } from "@/components/project-selector";
 
-export default async function BusinessPlanPage({ searchParams }: { searchParams: { tab?: string } }) {
+export default async function BusinessPlanPage({ searchParams }: { searchParams: { tab?: string, project?: string } }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -15,7 +16,14 @@ export default async function BusinessPlanPage({ searchParams }: { searchParams:
   }
 
   const projects = await getAccessibleProjects(supabase, user.id, user.email);
-  const project = projects.length > 0 ? projects[0] : null;
+  
+  const projectIdParam = searchParams.project;
+  let project = projects.length > 0 ? projects[0] : null;
+  
+  if (projectIdParam) {
+    const selected = projects.find(p => p.id === projectIdParam);
+    if (selected) project = selected;
+  }
 
   if (!project) {
     return (
@@ -48,23 +56,25 @@ export default async function BusinessPlanPage({ searchParams }: { searchParams:
           <span className="text-[10px] font-bold tracking-widest text-emerald-500 uppercase">BUSINESS STRATEGY & FINANCIALS</span>
         </div>
         <div className="flex justify-between items-end mb-6">
-          <h1 className="text-4xl font-extrabold text-white tracking-tight uppercase drop-shadow-[0_0_15px_rgba(16,185,129,0.2)]">{project.name}</h1>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-950/40 border border-emerald-800/50">
-             <Zap className="w-3.5 h-3.5 text-emerald-400" />
-             <span className="text-[9px] font-bold tracking-widest text-emerald-300 uppercase">AI Synced</span>
+          <h1 className="text-4xl font-extrabold text-white tracking-tight uppercase drop-shadow-[0_0_15px_rgba(16,185,129,0.2)] max-w-2xl truncate">{project.name}</h1>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-950/40 border border-emerald-800/50">
+               <Zap className="w-3.5 h-3.5 text-emerald-400" />
+               <span className="text-[9px] font-bold tracking-widest text-emerald-300 uppercase">AI Synced</span>
+            </div>
+            <ProjectSelector projects={projects} activeProjectId={project.id} />
           </div>
         </div>
 
-        {/* Tabs Navigation */}
         <div className="flex gap-8">
           <Link 
-            href="?tab=plan" 
+            href={`?tab=plan${project.id ? `&project=${project.id}` : ''}`} 
             className={`pb-4 text-sm font-bold tracking-wider uppercase border-b-2 transition-all ${tab === 'plan' ? 'border-emerald-500 text-white' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
           >
             <div className="flex items-center gap-2"><Briefcase className="w-4 h-4"/> Forretningsplan</div>
           </Link>
           <Link 
-            href="?tab=budget" 
+            href={`?tab=budget${project.id ? `&project=${project.id}` : ''}`} 
             className={`pb-4 text-sm font-bold tracking-wider uppercase border-b-2 transition-all ${tab === 'budget' ? 'border-blue-500 text-white' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
           >
             <div className="flex items-center gap-2"><DollarSign className="w-4 h-4"/> Budget & Finans</div>
