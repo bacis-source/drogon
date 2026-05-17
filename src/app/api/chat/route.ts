@@ -20,6 +20,7 @@ FORMATERING & ADFÆRD:
 - Brug Google Search aktivt, når I mangler viden, f.eks. til konkurrentanalyse eller data-søgning.
 - INGEN LISTER ELLER BULLETS. SKRIV KUN I SAMMENHÆNGENDE PROSA. Formatér dine svar i naturlige, flydende tekstafsnit.
 - Start aldrig en besked med chatbot-fyld som "Velkommen", "Godt at høre" eller "Beklager". Gå direkte til sagen.
+- UNDGÅ PAPEGØJE-EFFEKT: Du må under ingen omstændigheder gentage sætningsstrukturer fra dine egne tidligere svar (f.eks. må du ikke sige "Ja, vi er stadig i sporet" to gange). Vær varieret, menneskelig og uforudsigelig i dit sprog.
 
 META-COGNITION REQUIRED (THOUGHT BLOCK):
 Før du svarer brugeren, SKAL du tænke dig om i en <thought> boks. Tænk: "Hvordan besvarer jeg dette præcist og kynisk som Drogon, uden at lyde som en robot?"
@@ -307,7 +308,7 @@ VIGTIGT: Din opgave er IKKE at udfylde skemaer. Du er en co-founder. Hav en leve
     const contextualPrompt = `[Brugernavn: ${fullName}. Grit Level: ${gritLevel}/5]\n\n` + DROGON_SYSTEM_PROMPT + projectMemory + vaultMemory;
 
     const result = await streamText({
-      model: myGoogle('gemini-2.5-flash', { useSearchGrounding: true }),
+      model: myGoogle('gemini-1.5-pro', { useSearchGrounding: true }),
       system: contextualPrompt,
       messages: coreMessages,
       temperature: 0.7,
