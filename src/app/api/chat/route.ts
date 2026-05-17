@@ -308,7 +308,7 @@ VIGTIGT: Din opgave er IKKE at udfylde skemaer. Du er en co-founder. Hav en leve
     const contextualPrompt = `[Brugernavn: ${fullName}. Grit Level: ${gritLevel}/5]\n\n` + DROGON_SYSTEM_PROMPT + projectMemory + vaultMemory;
 
     const result = await streamText({
-      model: myGoogle('gemini-1.5-pro', { useSearchGrounding: true }),
+      model: myGoogle('gemini-2.5-flash', { useSearchGrounding: true }),
       system: contextualPrompt,
       messages: coreMessages,
       temperature: 0.7,
