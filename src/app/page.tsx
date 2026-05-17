@@ -178,7 +178,7 @@ function ChatContent() {
     };
     
     // @ts-expect-error - AI SDK evolving API types
-    sendMessage(payload);
+    sendMessage(payload, { body: { projectId, gritLevel } });
     setInput("");
     setAttachments([]);
     setDocumentTexts([]);
