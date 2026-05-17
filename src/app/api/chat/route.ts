@@ -297,17 +297,23 @@ export async function POST(req: Request) {
 
       if (activeProject) {
         // We are inside a specific project
-        const canvasStr = activeProject.lean_canvas ? JSON.stringify(activeProject.lean_canvas) : 'Ikke defineret';
-        const archStr = activeProject.tech_architecture ? JSON.stringify(activeProject.tech_architecture) : 'Ikke defineret';
-        const bpStr = activeProject.business_plan ? JSON.stringify(activeProject.business_plan) : 'Ikke defineret';
+        const knownData = [];
+        if (activeProject.summary) knownData.push(`Resume: ${activeProject.summary}`);
+        if (activeProject.business_model) knownData.push(`Forretningsmodel: ${activeProject.business_model}`);
+        
+        const hasCanvas = activeProject.lean_canvas && Object.keys(activeProject.lean_canvas).length > 0;
+        const hasArch = activeProject.tech_architecture && Object.keys(activeProject.tech_architecture).length > 0;
+        const hasBP = activeProject.business_plan && Object.keys(activeProject.business_plan).length > 0;
+        
+        if (hasCanvas) knownData.push(`Vi har grundelementer af en Lean Canvas på plads.`);
+        if (hasArch) knownData.push(`Den tekniske arkitektur er undervejs.`);
+        if (hasBP) knownData.push(`Forretningsplanen er i gang.`);
 
-        projectMemory = `\n\n[SYSTEM NOTE: DU ARBEJDER LIGE NU PÅ PROJEKTET: "${activeProject.name}".
-Resume: ${activeProject.summary || 'Intet resume'}
-Forretningsmodel: ${activeProject.business_model || 'Ikke defineret'}
-Lean Canvas: ${canvasStr}
-Arkitektur: ${archStr}
-Forretningsplan: ${bpStr}
-Fokuser på at rådgive ud fra disse rammer. VIGTIGT: Hvis en værdi ovenfor står som 'Ikke defineret', men I allerede har talt om det i chathistorikken, så stoler du PÅ CHATHISTORIKKEN! Vær organisk og undgå at remse op hvad I "mangler".]`
+        projectMemory = `\n\n[SYSTEM NOTE: DU ARBEJDER PÅ PROJEKTET: "${activeProject.name}".
+Her er hvad databasen p.t. indeholder:
+${knownData.length > 0 ? knownData.join('\n') : 'Projektet er helt nyt.'}
+
+VIGTIGT: Din opgave er IKKE at udfylde skemaer. Du er en co-founder. Hav en levende samtale, find på idéer, og byg ovenpå det brugeren siger. Kig op fra papirerne!]`
         
         const { data: vaultDocs } = await supabase
           .from('vault_documents')
