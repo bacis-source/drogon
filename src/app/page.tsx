@@ -10,22 +10,19 @@ import Link from "next/link";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { getChatHistory, handoffChat } from '@/app/actions/chat';
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
-export default function ChatPage() {
+function ChatContent() {
+  const searchParams = useSearchParams();
+  const projectId = searchParams.get('project') || undefined;
+  
   const [gritLevel, setGritLevel] = useState<number>(1);
-  const [projectId, setProjectId] = useState<string | undefined>(undefined);
-  const [isProjectIdLoaded, setIsProjectIdLoaded] = useState(false);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const pid = params.get('project');
-    setProjectId(pid || undefined);
-    setIsProjectIdLoaded(true);
-  }, []);
+  const isProjectIdLoaded = true;
 
   const chatBody = useMemo(() => ({ gritLevel, projectId }), [gritLevel, projectId]);
   const { messages, setMessages, sendMessage, status, error } = useChat({
-    // @ts-ignore - 'body' property causes type errors in Vercel build but works perfectly at runtime
+    // @ts-ignore
     body: chatBody,
   });
   const isLoading = status !== "ready" && status !== "error";
@@ -426,12 +423,16 @@ export default function ChatPage() {
             <Trophy className="w-4 h-4" />
             DRAGONS DEN
           </Link>
-          <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase opacity-50 cursor-help" title="System Monitor">
-            <Zap className="w-4 h-4 text-[#F59E0B]" />
-            <span className="text-[#F59E0B]">STATUS ONLINE</span>
-          </div>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ChatPage() {
+  return (
+    <Suspense fallback={<div className="h-full w-full flex items-center justify-center bg-[#0E1320]"><Loader2 className="w-8 h-8 text-[#F59E0B] animate-spin" /></div>}>
+      <ChatContent />
+    </Suspense>
   );
 }

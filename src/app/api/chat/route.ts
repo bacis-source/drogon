@@ -299,7 +299,7 @@ export async function POST(req: Request) {
     if (recentProjects && recentProjects.length > 0) {
       let activeProject = null;
       if (projectId) {
-          activeProject = recentProjects.find(p => p.id === projectId);
+          activeProject = allProjects.find(p => p.id === projectId);
       }
 
       if (activeProject) {
