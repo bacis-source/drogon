@@ -328,9 +328,9 @@ Fokuser KUN på at rådgive ud fra disse specifikke rammer og data. Modsæt dig 
         }
       } else {
         // We are in a blank new chat
-        projectMemory = `\n\n[SYSTEM NOTE: Brugeren er i et NYT tomt arbejdsrum. Her er en overfladisk liste over deres tidligere projekter:\n` + 
-          recentProjects.map((p: any) => `- Projekt: "${p.name}" (ID: ${p.id})\n  Resume: ${p.summary}`).join('\n') +
-          `\n\nVIGTIGT: Du har IKKE adgang til den dybe data for disse projekter lige nu. Hvis brugeren spørger ind til de dybe overvejelser fra et af disse projekter, må du IKKE sige "Det har jeg ikke adgang til" som en dum chatbot! Du skal i stedet kynisk sige: "Du befinder dig lige nu i det tomme rum. For at jeg kan hente alle de dybe arkitektur-data om [Projekt Navn], skal du aktivere projektet ved at klikke her: [Åbn Projekt](/?project=[INDSÆT ID HER]). Gør det, så kører vi videre."]`
+        projectMemory = `\n\n[SYSTEM NOTE: Brugeren er i et NYT tomt arbejdsrum. Her er en liste over deres seneste projekter:\n` + 
+          recentProjects.map((p: any) => `- Projekt: "${p.name}"\n  Link som du SKAL give brugeren for at åbne projektet: [Åbn Projekt](/?project=${p.id})\n  Resume: ${p.summary}`).join('\n\n') +
+          `\n\nVIGTIGT: Du har IKKE adgang til den dybe data for disse projekter lige nu. Hvis brugeren beder om at arbejde på et af disse projekter, må du IKKE sige "Det har jeg ikke adgang til"! Du skal i stedet sige: "Du befinder dig lige nu i det tomme rum. For at jeg kan hente alle de dybe data om [Projekt Navn], skal du aktivere projektet ved at klikke her: [INDSÆT DET KORREKTE LINK FRA LISTEN OVENFOR]. Gør det, så kører vi videre."]`
       }
     }
 
