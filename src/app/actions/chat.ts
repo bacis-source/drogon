@@ -6,6 +6,25 @@ import { getAccessibleProjects } from "@/lib/projects"
 import { generateText } from 'ai'
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
 
+export async function clearUnassignedChat() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { success: false }
+
+  const { error } = await supabase
+    .from('messages')
+    .update({ is_archived: true })
+    .eq('user_id', user.id)
+    .is('project_id', null)
+    .eq('is_archived', false)
+
+  if (error) {
+    console.error("Error clearing chat", error)
+    return { success: false }
+  }
+  return { success: true }
+}
+
 export async function getChatHistory(projectId?: string) {
   const supabase = await createClient()
 
