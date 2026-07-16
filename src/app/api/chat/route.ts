@@ -117,7 +117,7 @@ export async function POST(req: Request) {
     if (insertError) logError('Failed to save user message to DB', insertError);
 
     // Tjek om brugeren aktiverer "GEM" commandoen (tillader at den står et vilkårligt sted i beskeden)
-    const gemMatch = userText.match(/GEM\s+\[?([a-zA-Z0-9æøåÆØÅ\s\-]+)\]?/i);
+    const gemMatch = userText.match(/\bGEM\b(?:\s+\[?([a-zA-Z0-9æøåÆØÅ\s\-]+)\]?)?/i);
 
     if (gemMatch) {
       return await handleProjectExtraction(gemMatch, projectId, user, coreMessages, supabase, myOpenAI);
