@@ -59,7 +59,7 @@ export function AppSidebar({ userEmail = "MASTER ARCHITECT", userInitial = "M", 
           <div className="flex items-center justify-between px-2 mb-3">
              <span className="text-[10px] font-bold tracking-widest text-slate-500 uppercase">ARKIV</span>
              <button 
-               onClick={() => { router.push('/'); }}
+               onClick={() => { window.location.href = '/'; }}
                className="text-[10px] font-bold tracking-widest text-[#F59E0B] hover:text-[#EAB308] flex items-center gap-1"
              >
                <Plus className="w-3 h-3" /> NY
@@ -89,7 +89,7 @@ export function AppSidebar({ userEmail = "MASTER ARCHITECT", userInitial = "M", 
             <SidebarMenu className="gap-2">
               <SidebarMenuItem>
                 <SidebarMenuButton 
-                  onClick={() => router.push('/')}
+                  onClick={() => window.location.href = '/'}
                   className={`w-full hover:bg-[#EAB308] rounded-xl h-12 justify-start font-bold uppercase tracking-wider text-xs flex items-center gap-3 transition-colors ${pathname === '/' ? 'bg-[#F59E0B] text-[#0A0F1E] active:bg-[#D97706]' : 'text-slate-400 hover:text-[#0A0F1E]'}`}
                 >
                   <MessageSquare className="w-4 h-4 ml-1" />
