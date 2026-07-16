@@ -64,8 +64,12 @@ export function AppSidebar({ userEmail = "MASTER ARCHITECT", userInitial = "M", 
              <span className="text-[10px] font-bold tracking-widest text-slate-500 uppercase">ARKIV</span>
              <button 
                onClick={async () => { 
-                 await clearUnassignedChat();
-                 window.location.href = '/'; 
+                 const res = await clearUnassignedChat();
+                 if (res.success) {
+                   window.location.href = '/'; 
+                 } else {
+                   alert('Kunne ikke oprette ny samtale: ' + (res.error || 'Ukendt fejl'));
+                 }
                }}
                className="text-[10px] font-bold tracking-widest text-[#F59E0B] hover:text-[#EAB308] flex items-center gap-1"
              >
@@ -99,8 +103,12 @@ export function AppSidebar({ userEmail = "MASTER ARCHITECT", userInitial = "M", 
               <SidebarMenuItem>
                 <SidebarMenuButton 
                   onClick={async () => {
-                    await clearUnassignedChat();
-                    window.location.href = '/';
+                    const res = await clearUnassignedChat();
+                    if (res.success) {
+                      window.location.href = '/';
+                    } else {
+                      alert('Kunne ikke rydde samtale: ' + (res.error || 'Ukendt fejl'));
+                    }
                   }}
                   className={`w-full hover:bg-[#EAB308] rounded-xl h-12 justify-start font-bold uppercase tracking-wider text-xs flex items-center gap-3 transition-colors ${pathname === '/' ? 'bg-[#F59E0B] text-[#0A0F1E] active:bg-[#D97706]' : 'text-slate-400 hover:text-[#0A0F1E]'}`}
                 >

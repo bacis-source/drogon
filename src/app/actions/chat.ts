@@ -9,7 +9,7 @@ import { createGoogleGenerativeAI } from '@ai-sdk/google'
 export async function clearUnassignedChat() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { success: false }
+  if (!user) return { success: false, error: 'User not authenticated' }
 
   const { error } = await supabase
     .from('messages')
@@ -20,7 +20,7 @@ export async function clearUnassignedChat() {
 
   if (error) {
     console.error("Error clearing chat", error)
-    return { success: false }
+    return { success: false, error: error.message }
   }
   return { success: true }
 }
@@ -64,7 +64,7 @@ export async function getChatHistory(projectId?: string) {
 
   if (error || !data) {
     console.error("Error fetching chat history", error)
-    return []
+    throw new Error('Kunne ikke hente historik fra databasen.');
   }
 
   // Map to the format expected by useChat
@@ -150,8 +150,8 @@ export async function handoffChat(projectId?: string) {
     if (ins2Err) throw new Error(`Insert greeting error: ${ins2Err.message}`);
 
     return { success: true }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Handoff Error:", err);
-    return { success: false, error: err.message || String(err) };
+    return { success: false, error: err instanceof Error ? err.message : String(err) };
   }
 }

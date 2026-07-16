@@ -49,7 +49,7 @@ export async function calculateWincoverRoi(inputs: CalculatorInputs, email: stri
     const constantsMap: Partial<SystemConstants> = {};
     if (constantRows) {
       constantRows.forEach(row => {
-        (constantsMap as any)[row.key] = Number(row.value);
+        (constantsMap as Record<string, number>)[row.key] = Number(row.value);
       });
     }
 
@@ -105,7 +105,7 @@ export async function calculateWincoverRoi(inputs: CalculatorInputs, email: stri
     // never stops the user from seeing their mathematical results.
     try {
       const { text: aiResponse } = await generateText({
-        model: myGoogle ? myGoogle('gemini-2.5-flash', { useSearchGrounding: false }) : null as any,
+        model: myGoogle('gemini-2.5-flash', { useSearchGrounding: false }),
         prompt: aiPrompt,
         system: "Du er et API der KUN returnerer valid JSON.",
       });
@@ -137,10 +137,10 @@ export async function calculateWincoverRoi(inputs: CalculatorInputs, email: stri
       salesText: aiData.salesText
     };
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       success: false,
-      error: error.message
+      error: error instanceof Error ? error.message : String(error)
     };
   }
 }

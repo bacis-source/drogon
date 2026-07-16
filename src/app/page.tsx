@@ -87,7 +87,6 @@ function ChatContent() {
 
   const chatBody = useMemo(() => ({ gritLevel, projectId }), [gritLevel, projectId]);
   const { messages, setMessages, sendMessage, status, error } = useChat({
-    // @ts-ignore
     body: chatBody,
   });
   const isLoading = status === 'submitted' || status === 'streaming';
@@ -124,7 +123,10 @@ function ChatContent() {
       if (mounted && data) {
         setMessages(data);
       }
-    }).catch(console.error);
+    }).catch(err => {
+      console.error(err);
+      alert('Kunne ikke hente chat-historikken. Tjek din forbindelse.');
+    });
     return () => { mounted = false; };
   }, [projectId, isProjectIdLoaded]);
 
@@ -248,7 +250,7 @@ function ChatContent() {
       combinedInput = `${docString}\n\n${combinedInput}`;
     }
 
-    const inputParts: any[] = [];
+    const inputParts: { type: string, text?: string, image?: string }[] = [];
     if (combinedInput.trim()) inputParts.push({ type: "text", text: combinedInput });
     attachments.forEach(att => inputParts.push({ type: "image", image: att.url }));
 
@@ -353,12 +355,21 @@ function ChatContent() {
 
           {error && (
             <div className="flex justify-start items-start gap-4">
-               <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0 mt-1">
+               <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0 mt-1 shadow-[0_0_15px_rgba(239,68,68,0.2)]">
                  <span className="text-red-500 font-bold">!</span>
                </div>
-               <div className="max-w-[70%] rounded-2xl rounded-tl-sm px-6 py-5 bg-[#111626] border border-red-900/50 text-red-400">
-                  <p className="font-bold mb-1">System Fejl (Backend)</p>
-                  <p className="text-sm break-all">{error.message}</p>
+               <div className="max-w-[70%] rounded-2xl rounded-tl-sm px-6 py-5 bg-[#111626] border border-red-900/50 text-red-400 shadow-lg">
+                  <p className="font-bold mb-2 uppercase tracking-widest text-[10px]">Drogon Core Error</p>
+                  <p className="text-[14px] leading-relaxed break-all">
+                    {(() => {
+                      try {
+                        const parsed = JSON.parse(error.message);
+                        return parsed.error || error.message;
+                      } catch (e) {
+                        return error.message;
+                      }
+                    })()}
+                  </p>
                </div>
             </div>
           )}

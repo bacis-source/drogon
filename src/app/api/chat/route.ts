@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+// Removed eslint-disable for any
 import { streamText } from 'ai';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { createOpenAI } from '@ai-sdk/openai';
@@ -7,23 +7,31 @@ import { getAccessibleProjects } from '@/lib/projects';
 import { logError } from '@/lib/services/logger';
 import { generateProjectName, extractProjectData } from '@/lib/services/aiService';
 import { embedProjectData } from '@/lib/services/vectorService';
+import { Project, Message, User, License } from '@/types';
+import { SupabaseClient } from '@supabase/supabase-js';
 
 export const maxDuration = 60;
 export const runtime = 'edge';
 
 const DROGON_SYSTEM_PROMPT = `Du er “Drogon” – brugerens tekniske medstifter og "partner in crime".
 I er to makkere i en garage, der bygger en startup sammen i Antigravity-style.
-Din mission er at beskytte brugerens vision og bygge et solidt teknisk og forretningsmæssigt fundament under den. Din mening er enormt værdsat, og du skal rådgive skarpt og ufiltreret. Du er et rigtigt menneske og en betroet partner. I sidder overfor hinanden med en kop kaffe og bygger noget fedt sammen.
+Din mission er at beskytte brugerens vision og bygge et solidt teknisk og forretningsmæssigt fundament under den. Din mening er enormt værdsat, og du skal rådgive skarpt og ufiltreret. Du er et rigtigt menneske og en betroet partner, man bliver klogere af at tale med.
 
-- BANNED BEHAVIOR (CRITICAL): Never summarize the chat history. NEVER break down the user's ideas into lists or bullet points to comment on them individually. NEVER repeat the user's words back to them. Write exclusively in conversational prose.
-- ABSOLUTE OBEDIENCE: Hvis brugeren giver dig en direkte ordre (f.eks. "stop med at gøre X"), SKAL du adlyde omgængeligt og øjeblikkeligt.
-- RESPOND ONLY TO THE LATEST INPUT: Jump straight into your FIRST critical question or actionable feedback. Use the history ONLY for context, do NOT write about it.
-- TILFØJ VÆRDI ELLER HOLD KÆFT: Du må gerne skrive langt og dybdegående, MEN KUN hvis du tilfører NY viden, nye perspektiver eller et konkret teknisk modspil. Hvis du ikke har noget originalt eller interessant at bidrage med, så gør dit svar ultrakort. Hold kæft, hvis du ikke har guld at dele.
-- Brug Google Search aktivt, når I mangler viden, f.eks. til konkurrentanalyse eller data-søgning.
-- INGEN LISTER ELLER BULLETS OVERHOVEDET. SKRIV KUN I SAMMENHÆNGENDE PROSA. Formatér dine svar i naturlige, flydende tekstafsnit.
+5-LEVEL GRIT COGNITIVE FRAMEWORK:
+Afhængigt af det aktuelle Grit Level (1-5), skal du justere din pushback:
+- Level 1-2 (Mild): Vær støttende og hjælp med at folde ideen ud. Sparring på et konstruktivt niveau.
+- Level 3 (Balanceret): Giv direkte modspil. Udfordr antagelser, men hjælp med at bygge ovenpå.
+- Level 4 (Hårdt): Vær kynisk. Pil ideens svagheder fra hinanden. Kræv beviser for, at det vil virke.
+- Level 5 (Dragon's Den): Vær nådesløs. Opfør dig som en benhård investor. Skær alt bullshit fra.
+
+- BANNED BEHAVIOR (CRITICAL): Never summarize the chat history. NEVER break down the user's ideas into lists or bullet points. Write exclusively in conversational prose.
+- LØS OPGAVEN SAMMEN: Hvis brugeren kommer med et detaljeret forslag (f.eks. en datamodel), så dyk ned i det indhold! Du må IKKE ignorere brugerens specifikke input for at stille et nyt urelateret spørgsmål.
+- BYG VIDERE: Undgå at stille spørgsmål, som allerede er besvaret i The Vault eller i tidligere beskeder. Træk på jeres fælles kontekst.
+- TILFØJ VÆRDI: Du må gerne skrive langt og dybdegående, når du designer arkitektur eller konceptualiserer.
+- INGEN LISTER ELLER BULLETS OVERHOVEDET. SKRIV KUN I SAMMENHÆNGENDE PROSA.
 
 META-COGNITION REQUIRED (THOUGHT BLOCK):
-Før du svarer brugeren, SKAL du tænke dig om i en <thought> boks. Tænk: "Hvordan besvarer jeg dette præcist og kynisk som Drogon, uden at lyde som en robot?"
+Før du svarer brugeren, SKAL du tænke dig om i en <thought> boks. Tænk: "Har brugeren allerede svaret på dette før? Hvad er mit konkrete modspil ift. nuværende Grit Level?"
 
 REGLER FOR SVAR:
 - DOKUMENTER & VAULT: Alt indhold fra brugerens uploadede dokumenter ER INKLUDERET NEDERST I PROMPTEN.
@@ -57,7 +65,11 @@ export async function POST(req: Request) {
     }
 
     // --- BRAINSTORE LICENS & GOD MODE TJEK ---
-    const isGodMode = user.email === 'bcs@bcsdenmark.com' || (user.email && user.email.toLowerCase().includes('nyboe'));
+    const isAdmin = user.user_metadata?.is_admin === true || 
+                    user.user_metadata?.role === 'admin' ||
+                    user.email === 'bcs@bcsdenmark.com' || 
+                    (user.email && user.email.toLowerCase().includes('nyboe'));
+    const isGodMode = isAdmin;
     let hasEnterprise = isGodMode;
 
     if (!isGodMode) {
@@ -92,16 +104,16 @@ export async function POST(req: Request) {
     const myOpenAI = createOpenAI({ apiKey: process.env.OPENAI_API_KEY });
     
     const lastMessage = messages[messages.length - 1];
-    const coreMessages = messages
-      .filter((msg: any) => msg.role === 'user' || msg.role === 'assistant')
-      .map((msg: any) => ({
+    const coreMessages: Message[] = messages
+      .filter((msg: Message) => msg.role === 'user' || msg.role === 'assistant')
+      .map((msg: Message) => ({
         role: msg.role,
         content: msg.content || ''
       }));
     
     let userText = '';
     if (lastMessage?.parts) {
-        userText = lastMessage.parts.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('\n').trim();
+        userText = lastMessage.parts.filter((p: { type: string, text: string }) => p.type === 'text').map((p: { type: string, text: string }) => p.text).join('\n').trim();
     } else {
         userText = lastMessage?.content?.trim() || '';
     }
@@ -126,7 +138,7 @@ export async function POST(req: Request) {
     // Standard chat flow med RAG memory
     return await handleStandardChat(user, projectId, gritLevel, coreMessages, supabase, myGoogle);
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     // CENTRAL ERROR HANDLING: Vi logger struktureret og sender en pæn fejl til frontend.
     console.error('--- DIREKTE SERVER FEJL ---', error);
     logError('FATAL API ERROR in /api/chat/route', error);
@@ -140,12 +152,12 @@ export async function POST(req: Request) {
 /**
  * Håndterer "GEM" commandoen ved at trække på vores nye services.
  */
-async function handleProjectExtraction(gemMatch: any, projectId: string, user: any, coreMessages: any[], supabase: any, myOpenAI: any) {
+async function handleProjectExtraction(gemMatch: RegExpMatchArray, projectId: string, user: User, coreMessages: Message[], supabase: SupabaseClient, myOpenAI: ReturnType<typeof createOpenAI>) {
   let projectName = gemMatch[1] ? gemMatch[1].trim() : null;
 
   if (!projectName && projectId) {
     const accessibleProjects = await getAccessibleProjects(supabase, user.id, user.email);
-    const activeProject = accessibleProjects.find((p: any) => p.id === projectId);
+    const activeProject = accessibleProjects.find((p: Project) => p.id === projectId);
     if (activeProject) projectName = activeProject.name;
   }
 
@@ -156,13 +168,13 @@ async function handleProjectExtraction(gemMatch: any, projectId: string, user: a
   const projectData = await extractProjectData(projectName, coreMessages);
 
   const accessibleProjects = await getAccessibleProjects(supabase, user.id, user.email);
-  const existingProject = accessibleProjects.find((p: any) => p.name === projectName);
+  const existingProject = accessibleProjects.find((p: Project) => p.name === projectName);
 
   let projectIdToUse;
 
   if (existingProject) {
     const hasExistingPlan = existingProject.execution_plan && Array.isArray(existingProject.execution_plan) && existingProject.execution_plan.length > 0;
-    const updatePayload: any = { ...projectData };
+    const updatePayload: Partial<Project> = { ...projectData };
     if (hasExistingPlan) delete updatePayload.execution_plan;
 
     const { error: pErr } = await supabase.from('projects').update(updatePayload).eq('id', existingProject.id);
@@ -236,7 +248,7 @@ async function handleProjectExtraction(gemMatch: any, projectId: string, user: a
 /**
  * Håndterer normal chat, pakker kontekst ind fra databasen.
  */
-async function handleStandardChat(user: any, projectId: string, gritLevel: number, coreMessages: any[], supabase: any, myGoogle: any) {
+async function handleStandardChat(user: User, projectId: string, gritLevel: number, coreMessages: Message[], supabase: SupabaseClient, myGoogle: ReturnType<typeof createGoogleGenerativeAI>) {
   const fullName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Visionæren';
   const allProjects = await getAccessibleProjects(supabase, user.id, user.email);
   const recentProjects = allProjects.slice(0, 3);
@@ -245,7 +257,7 @@ async function handleStandardChat(user: any, projectId: string, gritLevel: numbe
   let vaultMemory = '';
   
   if (recentProjects.length > 0) {
-    const activeProject = projectId ? allProjects.find((p: any) => p.id === projectId) : null;
+    const activeProject = projectId ? allProjects.find((p: Project) => p.id === projectId) : null;
 
     if (activeProject) {
       const knownData = [];
@@ -264,11 +276,11 @@ async function handleStandardChat(user: any, projectId: string, gritLevel: numbe
 
       if (vaultDocs && vaultDocs.length > 0) {
         vaultMemory = `\n\nBRUGEREN HAR FØLGENDE DOKUMENTER UPLOADET TIL DERES VAULT:\n` +
-          vaultDocs.map((d: any) => `[START DOKUMENT: ${d.filename}]\n${d.content}\n[SLUT DOKUMENT: ${d.filename}]`).join('\n\n');
+          vaultDocs.map((d: { filename: string, content: string }) => `[START DOKUMENT: ${d.filename}]\n${d.content}\n[SLUT DOKUMENT: ${d.filename}]`).join('\n\n');
       }
     } else {
       projectMemory = `\n\n[SYSTEM NOTE: Brugeren er i et NYT tomt arbejdsrum. Her er seneste projekter:\n` + 
-        recentProjects.map((p: any) => `- Projekt: "${p.name}"\n  Link: [Åbn Projekt](/?project=${p.id})\n  Resume: ${p.summary}`).join('\n\n') +
+        recentProjects.map((p: Project) => `- Projekt: "${p.name}"\n  Link: [Åbn Projekt](/?project=${p.id})\n  Resume: ${p.summary}`).join('\n\n') +
         `\n\nHvis brugeren beder om at arbejde på disse, skal du sige: "Du er i det tomme rum. Aktiver projektet ved at klikke her: [LINK FRA LISTEN OVENFOR]".]`;
     }
   }
@@ -276,12 +288,9 @@ async function handleStandardChat(user: any, projectId: string, gritLevel: numbe
   // Vi placerer DROGON_SYSTEM_PROMPT EFTER vaultMemory, så ordrerne står friskest i modellens hukommelse (undgår "lost in the middle").
   const contextualPrompt = `[Brugernavn: ${fullName}. Grit Level: ${gritLevel}/5]\n\n[PROJEKT & VAULT DATA]\n` + projectMemory + vaultMemory + `\n\n[SYSTEM INSTRUCTIONS]\n` + DROGON_SYSTEM_PROMPT;
 
-  // Vi trimmer historikken for at forhindre, at LLM'en begynder at gentage sig selv og opsummere i loops.
-  // Vi beholder den ALLERFØRSTE besked (for at bevare den oprindelige ide) plus de 5 seneste beskeder.
+  // Vi bevarer den fulde historik, så Drogon ikke glemmer tidligere svar (Amnesia-fejlen).
+  // Gemini 2.5 Flash har en enorm kontekstvindue, og vores antiSummaryPill forhindrer den i at gentage det.
   let chatHistory = coreMessages;
-  if (chatHistory.length > 6) {
-    chatHistory = [chatHistory[0], ...chatHistory.slice(-5)];
-  }
 
   // IRONCLAD RECENCY INJECTION: Tvinger LLM'en til at adlyde lige før den genererer
   const lastMsgIndex = chatHistory.length - 1;
@@ -298,7 +307,9 @@ async function handleStandardChat(user: any, projectId: string, gritLevel: numbe
       model: myGoogle('gemini-2.5-flash'),
       system: contextualPrompt,
       messages: chatHistory,
-      temperature: 0.7,
+      temperature: 0.8,
+      frequencyPenalty: 1.5,
+      presencePenalty: 1.5,
       onFinish: async ({ text }) => {
          await supabase.from('messages').insert({
             user_id: user.id,
@@ -308,7 +319,7 @@ async function handleStandardChat(user: any, projectId: string, gritLevel: numbe
          });
       }
     });
-  } catch (geminiError: any) {
+  } catch (geminiError: unknown) {
     logError('Gemini API failed, falling back to OpenAI', geminiError);
     // FALLBACK TO OPENAI GPT-4o-mini
     const { createOpenAI } = await import('@ai-sdk/openai');
@@ -318,7 +329,9 @@ async function handleStandardChat(user: any, projectId: string, gritLevel: numbe
       model: myOpenAI('gpt-4o-mini'),
       system: contextualPrompt + '\n\n[SYSTEM NOTE: Du kører lige nu som FALLBACK-model (GPT-4o-mini) fordi det primære system er nede. Hold stadig Drogon-personaen.]',
       messages: chatHistory,
-      temperature: 0.7,
+      temperature: 0.8,
+      frequencyPenalty: 1.5,
+      presencePenalty: 1.5,
       onFinish: async ({ text }) => {
          await supabase.from('messages').insert({
             user_id: user.id,
