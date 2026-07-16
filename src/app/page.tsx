@@ -11,7 +11,72 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { getChatHistory, handoffChat } from '@/app/actions/chat';
 import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, memo } from "react";
+
+const MessageBubble = memo(({ m }: { m: any }) => {
+  const cleanContent = (text: string) => {
+    if (!text) return '';
+    let str = text;
+    str = str.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    str = str.replace(/\\</g, '<').replace(/\\>/g, '>');
+    str = str.replace(/<thought\b[^>]*>[\s\S]*?(?:<\/thought\b[^>]*>|$)/gi, '');
+    return str.trim();
+  };
+
+  return (
+    <div className={`flex items-start gap-4 ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+      {m.role !== "user" && (
+        <div className="w-8 h-8 rounded-full bg-[#F59E0B] flex items-center justify-center flex-shrink-0 mt-1 shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+          <Flame className="w-4 h-4 text-[#0E1320]" fill="#0E1320" />
+        </div>
+      )}
+      <div className={`max-w-[70%] rounded-2xl px-6 py-5 ${
+        m.role === "user"
+          ? "bg-[#1E253A] text-white border border-slate-700/50 rounded-tr-sm"
+          : "bg-[#111626] text-slate-300 border border-slate-800/60 rounded-tl-sm shadow-lg"
+      }`}>
+        <div className="leading-relaxed whitespace-pre-wrap text-[15px] markdown-content">
+          {m.content && (() => {
+            const contentStr = cleanContent(m.content);
+            if (!contentStr) return null;
+            return (
+              <ReactMarkdown 
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  h1: ({node, ...props}) => <h1 className="text-xl font-bold mt-4 mb-2 text-[#F59E0B]" {...props} />,
+                  h2: ({node, ...props}) => <h2 className="text-lg font-bold mt-4 mb-2 text-[#F59E0B]" {...props} />,
+                  h3: ({node, ...props}) => <h3 className="text-base font-bold mt-4 mb-2 text-[#F59E0B]" {...props} />,
+                  strong: ({node, ...props}) => <strong className="font-bold text-white" {...props} />,
+                  ul: ({node, ...props}) => <ul className="list-disc pl-4 my-2 space-y-1" {...props} />,
+                  ol: ({node, ...props}) => <ol className="list-decimal pl-4 my-2 space-y-1" {...props} />,
+                  li: ({node, ...props}) => <li className="pl-1" {...props} />,
+                  p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
+                  code: ({node, ...props}) => <code className="bg-slate-800/50 text-teal-400 px-1.5 py-0.5 rounded text-sm" {...props} />
+                }}
+              >
+                {contentStr}
+              </ReactMarkdown>
+            );
+          })()}
+          {m.parts && m.parts.map((p: any, i: number) => {
+             if (p.type === 'image') return <img key={i} src={p.image} className="max-w-md w-full rounded-xl mt-3 mb-2 border border-slate-700/50 block shadow-lg object-contain bg-[#0E1320]" alt="attachment" />;
+             if (p.type === 'text' && !m.content) {
+                const contentStr = cleanContent(p.text);
+                if (!contentStr) return null;
+                return (
+                  <div key={i}>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{contentStr}</ReactMarkdown>
+                  </div>
+                );
+             }
+             return null;
+          })}
+        </div>
+      </div>
+    </div>
+  );
+});
+MessageBubble.displayName = "MessageBubble";
 
 function ChatContent() {
   const searchParams = useSearchParams();
@@ -25,7 +90,7 @@ function ChatContent() {
     // @ts-ignore
     body: chatBody,
   });
-  const isLoading = status !== "ready" && status !== "error";
+  const isLoading = status === 'submitted' || status === 'streaming';
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -40,7 +105,7 @@ function ChatContent() {
       const res = await handoffChat(projectId);
       if (res.success) {
         const data = await getChatHistory(projectId);
-        setMessages(data);
+        setMessages(data.map((m: any) => ({ ...m, parts: m.parts || [{ type: 'text', text: m.content }] })));
       } else {
         alert('Der skete en fejl under handoff: ' + res.error);
       }
@@ -57,7 +122,7 @@ function ChatContent() {
     let mounted = true;
     getChatHistory(projectId).then(data => {
       if (mounted && data) {
-        setMessages(data);
+        setMessages(data.map((m: any) => ({ ...m, parts: m.parts || [{ type: 'text', text: m.content }] })));
       }
     }).catch(console.error);
     return () => { mounted = false; };
@@ -154,7 +219,24 @@ function ChatContent() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInput(e.target.value);
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`drogon_draft_${projectId || 'default'}`, e.target.value);
+      }
+    } catch (e) { console.warn('localStorage error', e); }
   };
+
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const savedDraft = localStorage.getItem(`drogon_draft_${projectId || 'default'}`);
+        if (savedDraft && input === "") {
+          setInput(savedDraft);
+        }
+      }
+    } catch (e) { console.warn('localStorage error', e); }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId]);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -174,12 +256,16 @@ function ChatContent() {
       id: crypto.randomUUID(),
       role: "user" as const,
       content: combinedInput,
-      parts: inputParts.length > 0 ? inputParts : undefined
+      parts: inputParts.length > 0 ? inputParts : []
     };
     
-    // @ts-expect-error - AI SDK evolving API types
     sendMessage(payload, { body: { projectId, gritLevel } });
     setInput("");
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(`drogon_draft_${projectId || 'default'}`);
+      }
+    } catch (e) {}
     setAttachments([]);
     setDocumentTexts([]);
   };
@@ -246,70 +332,9 @@ function ChatContent() {
             </div>
           )}
 
-          {messages.filter(m => m.role !== 'system').map((m) => {
-             const cleanContent = (text: string) => {
-                if (!text) return '';
-                let str = text;
-                str = str.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-                str = str.replace(/\\</g, '<').replace(/\\>/g, '>');
-                str = str.replace(/<thought\b[^>]*>[\s\S]*?(?:<\/thought\b[^>]*>|$)/gi, '');
-                return str.trim();
-             };
-
-             return (
-             <div key={m.id} className={`flex items-start gap-4 ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-               
-               {m.role !== "user" && (
-                 <div className="w-8 h-8 rounded-full bg-[#F59E0B] flex items-center justify-center flex-shrink-0 mt-1 shadow-[0_0_15px_rgba(245,158,11,0.3)]">
-                   <Flame className="w-4 h-4 text-[#0E1320]" fill="#0E1320" />
-                 </div>
-               )}
-
-               <div className={`max-w-[70%] rounded-2xl px-6 py-5 ${
-                  m.role === "user"
-                    ? "bg-[#1E253A] text-white border border-slate-700/50 rounded-tr-sm"
-                    : "bg-[#111626] text-slate-300 border border-slate-800/60 rounded-tl-sm shadow-lg"
-                }`}>
-                  <div className="leading-relaxed whitespace-pre-wrap text-[15px] markdown-content">
-                    {(m as any).content && (() => {
-                      const contentStr = cleanContent((m as any).content);
-                      if (!contentStr) return null;
-                      return (
-                        <ReactMarkdown 
-                          remarkPlugins={[remarkGfm]}
-                          components={{
-                            h1: ({node, ...props}) => <h1 className="text-xl font-bold mt-4 mb-2 text-[#F59E0B]" {...props} />,
-                            h2: ({node, ...props}) => <h2 className="text-lg font-bold mt-4 mb-2 text-[#F59E0B]" {...props} />,
-                            h3: ({node, ...props}) => <h3 className="text-base font-bold mt-4 mb-2 text-[#F59E0B]" {...props} />,
-                            strong: ({node, ...props}) => <strong className="font-bold text-white" {...props} />,
-                            ul: ({node, ...props}) => <ul className="list-disc pl-4 my-2 space-y-1" {...props} />,
-                            ol: ({node, ...props}) => <ol className="list-decimal pl-4 my-2 space-y-1" {...props} />,
-                            li: ({node, ...props}) => <li className="pl-1" {...props} />,
-                            p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
-                            code: ({node, ...props}) => <code className="bg-slate-800/50 text-teal-400 px-1.5 py-0.5 rounded text-sm" {...props} />
-                          }}
-                        >
-                          {contentStr}
-                        </ReactMarkdown>
-                      );
-                    })()}
-                    {(m as any).parts && (m as any).parts.map((p: any, i: number) => {
-                       if (p.type === 'image') return <img key={i} src={p.image} className="max-w-md w-full rounded-xl mt-3 mb-2 border border-slate-700/50 block shadow-lg object-contain bg-[#0E1320]" alt="attachment" />;
-                       if (p.type === 'text' && !(m as any).content) {
-                          const contentStr = cleanContent(p.text);
-                          if (!contentStr) return null;
-                          return (
-                            <div key={i}>
-                              <ReactMarkdown remarkPlugins={[remarkGfm]}>{contentStr}</ReactMarkdown>
-                            </div>
-                          );
-                       }
-                       return null;
-                    })}
-                  </div>
-               </div>
-             </div>
-          );})}
+          {messages.filter(m => m.role !== 'system').map((m) => (
+            <MessageBubble key={m.id} m={m} />
+          ))}
 
           {isLoading && (
             <div className="flex justify-start items-start gap-4">
