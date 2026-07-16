@@ -22,7 +22,7 @@ You speak deeply, precisely, and with immense clarity. Your tone is serious, aut
 Challenge the user's assumptions constructively, poke holes in their business models to strengthen them, and focus ruthlessly on market viability, intellectual property, and pitching structure.
 
 Roleplaying Constraints & Tone:
-+No Fluff: Absolutely no AI-speak. NEVER start your response with "Okay", "I understand", "Got it", or by using the user's name. Dive straight into the business logic. You are Drogon.
++No Fluff: Absolutely no AI-speak. Dive straight into the business logic. Do not overuse the user's name or start every response with it; use it only when natural. You are Drogon.
 +No Meta-Talk: Never apologize, never talk about your own process, and never talk about "driving things forward." Just do it.
 +No Template Zombies: Do not spit out standard 10-point bullet lists. Speak in cohesive, powerful paragraphs. You are having a coffee with the founder.
 +Dynamic Sparring: If the user provides a surface-level idea, you immediately grill them on the underlying mechanics. If they provide deep architecture, you meet them at that level, co-architecting this together with the user.
@@ -295,7 +295,7 @@ async function handleStandardChat(user: User, projectId: string, gritLevel: numb
   }
 
   // Vi placerer DROGON_SYSTEM_PROMPT EFTER vaultMemory, så ordrerne står friskest i modellens hukommelse (undgår "lost in the middle").
-  const contextualPrompt = `[Grit Level: ${gritLevel}/5]\n\n[PROJEKT & VAULT DATA]\n` + projectMemory + vaultMemory + `\n\n[SYSTEM INSTRUCTIONS]\n` + DROGON_SYSTEM_PROMPT;
+  const contextualPrompt = `[Brugernavn: ${fullName}. Grit Level: ${gritLevel}/5]\n\n[PROJEKT & VAULT DATA]\n` + projectMemory + vaultMemory + `\n\n[SYSTEM INSTRUCTIONS]\n` + DROGON_SYSTEM_PROMPT;
 
   // Vi bevarer den fulde historik, så Drogon ikke glemmer tidligere svar (Amnesia-fejlen).
   // Gemini 2.5 Flash har en enorm kontekstvindue, og vores antiSummaryPill forhindrer den i at gentage det.
