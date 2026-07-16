@@ -96,7 +96,7 @@ export async function POST(req: Request) {
       .filter((msg: any) => msg.role === 'user' || msg.role === 'assistant')
       .map((msg: any) => ({
         role: msg.role,
-        content: msg.parts && msg.parts.length > 0 ? msg.parts : (msg.content || '')
+        content: msg.content || ''
       }));
     
     let userText = '';

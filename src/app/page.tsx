@@ -105,7 +105,7 @@ function ChatContent() {
       const res = await handoffChat(projectId);
       if (res.success) {
         const data = await getChatHistory(projectId);
-        setMessages(data.map((m: any) => ({ ...m, parts: m.parts || [{ type: 'text', text: m.content }] })));
+        setMessages(data);
       } else {
         alert('Der skete en fejl under handoff: ' + res.error);
       }
@@ -122,7 +122,7 @@ function ChatContent() {
     let mounted = true;
     getChatHistory(projectId).then(data => {
       if (mounted && data) {
-        setMessages(data.map((m: any) => ({ ...m, parts: m.parts || [{ type: 'text', text: m.content }] })));
+        setMessages(data);
       }
     }).catch(console.error);
     return () => { mounted = false; };
