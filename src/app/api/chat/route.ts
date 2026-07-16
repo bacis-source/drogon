@@ -308,8 +308,6 @@ async function handleStandardChat(user: User, projectId: string, gritLevel: numb
       system: contextualPrompt,
       messages: chatHistory,
       temperature: 0.8,
-      frequencyPenalty: 1.5,
-      presencePenalty: 1.5,
       onFinish: async ({ text }) => {
          await supabase.from('messages').insert({
             user_id: user.id,
@@ -330,8 +328,6 @@ async function handleStandardChat(user: User, projectId: string, gritLevel: numb
       system: contextualPrompt + '\n\n[SYSTEM NOTE: Du kører lige nu som FALLBACK-model (GPT-4o-mini) fordi det primære system er nede. Hold stadig Drogon-personaen.]',
       messages: chatHistory,
       temperature: 0.8,
-      frequencyPenalty: 1.5,
-      presencePenalty: 1.5,
       onFinish: async ({ text }) => {
          await supabase.from('messages').insert({
             user_id: user.id,
