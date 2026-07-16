@@ -1,0 +1,260 @@
+[
+  {
+    "id": "cd9b530e-586f-467e-b68a-7ac89d0c5061",
+    "name": "BuildPlan",
+    "summary": "BuildPlan er en digital platform designet til at hjælpe SME-byggevirksomheder med at planlægge, gennemføre og evaluere byggeprojekter mere effektivt, med fokus på tidsstyring og ressourceallokering.",
+    "business_model": "Tjen penge gennem abonnementsbaserede modeller, opkrævning per projekt, og tilkøb af premium-funktioner.",
+    "tech_spec": "Udviklet som en webapplikation med en React frontend og Node.js backend. Anvender MongoDB som database og hostes på AWS.",
+    "ip_strategy": "Unik softwareløsning, brugerdefinerede algoritmer til tidsoptimering og projektmodulstyring, samt brandet BuildPlan som varemærke.",
+    "user_id": "7a86089d-39da-4bff-9826-41827be54c5a",
+    "created_at": "2026-07-06T14:35:00.843248+00:00",
+    "updated_at": "2026-07-06T14:35:00.843248+00:00",
+    "lean_canvas": {
+      "uvp": "Integrerede værktøjer, der kombinerer projektplanlægning med ressourceforvaltning og rapportering.",
+      "problem": "Byggevirksomheder mangler en nem og effektiv måde at planlægge projekter og overvåge fremskridt i realtid.",
+      "channels": "Direktesalg til byggevirksomheder, online marketing, workshops og samarbejde med brancheorganisationer.",
+      "solution": "En digital platform der muliggør omfattende projektplanlægning, ressourceallokering og fremskridtsanalyse.",
+      "key_metrics": "Antallet af gennemførte projekter, kundetilfredshed og platformens engagementsniveau.",
+      "cost_structure": "Enten fast månedligt gebyr, variable omkostninger per projekt eller en kombination af begge.",
+      "revenue_streams": "Abonnementsgebyrer, engangsbetalinger for tilføjelser, salgsprovisioner ved partnerskaber.",
+      "unfair_advantage": "Proprietære algoritmer til tidsoptimering og effektive budgetrapporteringsværktøjer.",
+      "customer_segments": "SME-byggevirksomheder, projektledere, entreprenører."
+    },
+    "tech_architecture": {
+      "backend": "Node.js med Express.js framework til serverlogik.",
+      "database": "MongoDB for fleksibel og skalerbar databasehåndtering.",
+      "frontend": "React.js med Material-UI for brugergrænsefladekomponenter.",
+      "security": "HTTPS, OAuth 2.0 til autentifikation og data kryptering med AES-256.",
+      "system_flow": "Fra klientforespørgsel til databaseopdateringer gennem RESTful API'er, der sikrer realtidsdataadgang.",
+      "infrastructure": "Hostet på AWS med brug af EC2 og S3 for skalerbarhed og langvarig datalagring."
+    },
+    "execution_plan": [
+      {
+        "task": "Udfør markedsundersøgelse",
+        "phase": "Forberedelse",
+        "status": "DONE"
+      },
+      {
+        "task": "Udvikl MVP",
+        "phase": "Udvikling",
+        "status": "IN_PROGRESS"
+      },
+      {
+        "task": "Test MVP med pilotkunder",
+        "phase": "Testfase",
+        "status": "BACKLOG"
+      },
+      {
+        "task": "Lancer marketingkampagne",
+        "phase": "Lanceringsfase",
+        "status": "BACKLOG"
+      },
+      {
+        "task": "Skaler driften",
+        "phase": "Skaleringsfase",
+        "status": "BACKLOG"
+      }
+    ],
+    "business_plan": {
+      "operations": "Udviklingshold baseret i Danmark med fjernarbejdsmuligheder. Supportteam tilgængeligt døgnet rundt.",
+      "go_to_market": "Lancer initialt i Skandinavien, udvid derefter til resten af Europa. Fokus på industritilpassede workshops og messer.",
+      "system_prompt": "Du er en intelligent digital assistent til byggestyring, der hjælper med planlægning og ressourceoptimering for byggeprojekter.",
+      "market_analysis": "Markedet for digital projektstyring i byggebranchen vokser med øget fokus på effektivitet og bæredygtighed.",
+      "executive_summary": "BuildPlan leverer en alt-i-en løsning til byggevirksomheder, der ønsker at modernisere deres projektstyring og optimere ressourcebrug."
+    },
+    "budget": {
+      "opex": [
+        {
+          "name": "Lønninger",
+          "amount": 200000
+        },
+        {
+          "name": "Marketing",
+          "amount": 50000
+        }
+      ],
+      "capex": [
+        {
+          "name": "Softwareudvikling",
+          "amount": 100000
+        },
+        {
+          "name": "Infrastruktur",
+          "amount": 50000
+        }
+      ],
+      "revenue": [
+        {
+          "name": "Abonnementer",
+          "amount": 150000
+        },
+        {
+          "name": "Tilføjelser",
+          "amount": 50000
+        }
+      ]
+    }
+  },
+  {
+    "id": "416c1dfa-fa26-4f60-82b4-45a1fca328d2",
+    "name": "WINCOVER",
+    "summary": "Wincover planlægger at udvide til nye områder ved at fokusere på renoveringsprojekter og genanvendelse i byggeindustrien. De vil bruge en CO2-beregner til at kvantificere værdien af beskyttelse og promovere disse fordele i deres netværk.",
+    "business_model": "Salg af beskyttelsesmoduler, kombineret med digitale værktøjer som beregnere for at styrke værdipropositionen og drive konverteringer.",
+    "tech_spec": "Udvikling af en CO2-beregner, der anvender data om vinduestyper og transportomkostninger for at beregne besparelser og miljøfordele ved genanvendelse.",
+    "ip_strategy": "Fokus på at udvikle proprietære algoritmer til præcise beregninger og skabe et unikt salgsargument baseret på deres bæredygtighedsprofil.",
+    "user_id": "7a86089d-39da-4bff-9826-41827be54c5a",
+    "created_at": "2026-05-15T17:29:36.606465+00:00",
+    "updated_at": "2026-05-15T17:29:36.606465+00:00",
+    "lean_canvas": {
+      "uvp": "Unik kombination af beskyttelse og bæredygtighed, der dokumenterer klare CO2-besparelser.",
+      "problem": "1. Høje omkostninger ved udskiftning af beskadigede materialer.\n2. Manglende incitament til genanvendelse i byggebranchen.\n3. Manglende dokumentation af miljømæssige fordele.",
+      "channels": "Digitale kanaler, direkte salg, netværk i byggebranchen.",
+      "solution": "1. CO2-beregner til dokumentation.\n2. Beskyttelsesmoduler til vinduer.\n3. Digital platform for tilbudsberegning og bestilling.",
+      "key_metrics": "Antal beregninger foretaget, leads genereret, antal solgte enheder.",
+      "cost_structure": "Omkostninger til udvikling af digitale værktøjer, markedsføring, distribution.",
+      "revenue_streams": "Direkte salg af moduler, licensering af beregningsværktøj.",
+      "unfair_advantage": "Genanvendelige materialer og etablerede netværk i bygge- og nedrivningsbranchen.",
+      "customer_segments": "Bygherre, entreprenører, nedrivningsvirksomheder."
+    },
+    "tech_architecture": {
+      "backend": "Node.js til applikationslogik og beregningstjenester.",
+      "database": "PostgreSQL til lagring af produktdata og brugerinteraktioner.",
+      "frontend": "React til brugergrænsefladen og interaktive elementer som beregnere.",
+      "security": "OAuth 2.0 til brugerautentifikation, kryptering af data.",
+      "system_flow": "Data indsamles fra brugerinput og sendes til backend til behandling, hvorefter resultaterne præsenteres for brugeren.",
+      "infrastructure": "AWS til hosting og skalering, Jenkins til CI/CD."
+    },
+    "execution_plan": [
+      {
+        "task": "Revidér hjemmeside med nye beregnerfunktioner",
+        "phase": "Phase 1: Teknikudvikling",
+        "status": "BACKLOG"
+      },
+      {
+        "task": "Sæt internationalt salgteam op",
+        "phase": "Phase 2: Markedsudvidelse",
+        "status": "BACKLOG"
+      },
+      {
+        "task": "Deltag i byggebranchens messer",
+        "phase": "Phase 3: Salgsaktiviteter",
+        "status": "BACKLOG"
+      },
+      {
+        "task": "Test nye markeder (solceller, kunst)",
+        "phase": "Phase 4: Markedsudvikling",
+        "status": "BACKLOG"
+      }
+    ],
+    "business_plan": {
+      "operations": "Udviklingsteam til digitale løsninger, salgsteam til markedsføring og netværksekspansion.",
+      "go_to_market": "Lancering af digitale værktøjer, der kan hjælpe kunderne med at beregne besparelser.",
+      "market_analysis": "Der er et stigende pres på byggebranchen for at reducere CO2-aftryk og styrke genanvendelse.",
+      "executive_summary": "Wincover planlægger at udvide deres marked ved at udnytte eksisterende netværk i renoverings- og nedrivningsbranchen med en ny CO2-beregner."
+    },
+    "budget": {
+      "opex": [
+        {
+          "name": "Løn til udviklere",
+          "amount": 50000
+        },
+        {
+          "name": "Markedsføring",
+          "amount": 20000
+        }
+      ],
+      "capex": [
+        {
+          "name": "Udvikling af digitale værktøjer",
+          "amount": 300000
+        }
+      ],
+      "revenue": [
+        {
+          "name": "Salg af moduler",
+          "amount": 100000
+        },
+        {
+          "name": "Licenser til CO2-beregneren",
+          "amount": 30000
+        }
+      ]
+    }
+  },
+  {
+    "id": "5a31db1b-ce98-44d6-9190-a4eaf1655deb",
+    "name": "Build optimizer",
+    "summary": "Vi har fokuseret på at skabe en effektiv platform for byggebranchens projektstyring og ressourceallokering. Fokus har været på at sikre en brugervenlig grænseflade og integrere essentielt funktionalitet som blueprint-upload.",
+    "business_model": "Abonnement baseret på projektstørrelse, hvor brugere betaler månedligt eller årligt. Partnerskaber med byggemateriale-leverandører.",
+    "tech_spec": "Fokus på en microservices-arkitektur med React/Node.js og PostgreSQL. Cloud hosting for skalerbarhed og real-time data integration.",
+    "ip_strategy": "Udvikling af unikke algoritmer til projektoptimering med mulighed for patentering. Stærke NDA'er ved partnerskaber.",
+    "user_id": "7a86089d-39da-4bff-9826-41827be54c5a",
+    "created_at": "2026-05-14T15:22:54.736619+00:00",
+    "updated_at": "2026-05-14T15:22:54.736619+00:00",
+    "lean_canvas": {
+      "uvp": "Optimer byggeprojekter hurtigt og brugervenligt.",
+      "problem": "1. Forsinkelser i projekter. 2. Omkostningsoverskridelser. 3. Ineffektiv ressourceallokering.",
+      "channels": "Direkte salg, partnere i byggebranchen, online markedsføring.",
+      "solution": "1. Effektiv blueprint-upload. 2. Intuitivt dashboard. 3. Automatiserede ressourcefordelinger.",
+      "key_metrics": "Brugerengagement, projektleveringstid, omkostningsbesparelser.",
+      "cost_structure": "Udviklingsomkostninger, marketing, support.",
+      "revenue_streams": "Abonnementsmodel, servicegebyrer.",
+      "unfair_advantage": "Skalerbar AI-drevet ressourceplanlægning.",
+      "customer_segments": "Byggeledere, entreprenører, arkitekter."
+    },
+    "tech_architecture": {
+      "backend": "Node.js for hurtig serverlogik.",
+      "database": "PostgreSQL for robust datalagring.",
+      "frontend": "React for dynamisk UI.",
+      "security": "OAuth 2.0 for sikker autentifikation.",
+      "system_flow": "Data flyder fra brugerinput til backend-processering og til visning i dashboardet.",
+      "infrastructure": "AWS for skalerbar cloud hosting."
+    },
+    "execution_plan": [
+      {
+        "task": "Udvikle brugergrænseflade",
+        "phase": "Phase 1: Udvikling",
+        "status": "IN_PROGRESS"
+      },
+      {
+        "task": "Implementere blueprint-funktion",
+        "phase": "Phase 2: Funktionalitet",
+        "status": "BACKLOG"
+      }
+    ],
+    "business_plan": {
+      "operations": "Smidig udvikling og markedsføringsteam med stærke forbindelser til byggebranchen.",
+      "go_to_market": "Fokus på partnerskaber med store entreprenører og brug af online kampagner.",
+      "market_analysis": "Markant behov for digitalisering og effektive værktøjer i byggebranchen. Konkurrence fra traditionelle styringssystemer.",
+      "executive_summary": "En platform, der løser ineffektivitet i byggebranchen ved at optimere projektstyring og ressourceallokering."
+    },
+    "budget": {
+      "opex": [
+        {
+          "name": "Cloud hosting",
+          "amount": 15000
+        },
+        {
+          "name": "Support og vedligehold",
+          "amount": 20000
+        }
+      ],
+      "capex": [
+        {
+          "name": "Udviklingsteam",
+          "amount": 300000
+        },
+        {
+          "name": "Design og UX",
+          "amount": 100000
+        }
+      ],
+      "revenue": [
+        {
+          "name": "Abonnementer",
+          "amount": 100000
+        }
+      ]
+    }
+  }
+]
