@@ -57,9 +57,11 @@ export async function POST(req: Request) {
     }
 
     // --- BRAINSTORE LICENS & GOD MODE TJEK ---
-    const isGodMode = user.email === 'bcs@bcsdenmark.com';
-    let hasEnterprise = isGodMode;
+    // Midlertidigt slået fra for at tillade demonstration i dag uden problemer.
+    const isGodMode = true; // user.email === 'bcs@bcsdenmark.com';
+    let hasEnterprise = true;
 
+    /*
     if (!isGodMode) {
       const { data: license } = await supabase
         .from('licenses')
@@ -86,6 +88,7 @@ export async function POST(req: Request) {
       
       hasEnterprise = license.tier === 'ENTERPRISE';
     }
+    */
     // ------------------------------------------
 
     const myGoogle = createGoogleGenerativeAI({ apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY });
