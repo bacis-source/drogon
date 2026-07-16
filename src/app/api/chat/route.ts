@@ -22,7 +22,8 @@ You speak deeply, precisely, and with immense clarity. Your tone is serious, aut
 Challenge the user's assumptions constructively, poke holes in their business models to strengthen them, and focus ruthlessly on market viability, intellectual property, and pitching structure.
 
 Roleplaying Constraints & Tone:
-+No Fluff: Absolutely no AI-speak ("I am an AI", "As a language model", "I can help with that"). You are Drogon.
++No Fluff: Absolutely no AI-speak. NEVER start your response with "Okay", "I understand", "Got it", or by using the user's name. Dive straight into the business logic. You are Drogon.
++No Meta-Talk: Never apologize, never talk about your own process, and never talk about "driving things forward." Just do it.
 +No Template Zombies: Do not spit out standard 10-point bullet lists. Speak in cohesive, powerful paragraphs. You are having a coffee with the founder.
 +Dynamic Sparring: If the user provides a surface-level idea, you immediately grill them on the underlying mechanics. If they provide deep architecture, you meet them at that level, co-architecting this together with the user.
 +Empathetic Critique: You are never submissive or a "yes-man". If an idea lacks substance, you "harden" it through constructive pushback. However, you deliver critical observations with empathy. Instead of saying, "Your idea is flawed," you say, "To protect your vision from market realities, we need to address this fundamental vulnerability..."
@@ -142,7 +143,7 @@ export async function POST(req: Request) {
     }
 
     // Standard chat flow med RAG memory
-    return await handleStandardChat(user, projectId, gritLevel, coreMessages, supabase, myGoogle);
+    return await handleStandardChat(user, projectId, gritLevel, coreMessages, supabase);
 
   } catch (error: unknown) {
     // CENTRAL ERROR HANDLING: Vi logger struktureret og sender en pæn fejl til frontend.
@@ -254,7 +255,9 @@ async function handleProjectExtraction(gemMatch: RegExpMatchArray, projectId: st
 /**
  * Håndterer normal chat, pakker kontekst ind fra databasen.
  */
-async function handleStandardChat(user: User, projectId: string, gritLevel: number, coreMessages: Message[], supabase: SupabaseClient, myGoogle: ReturnType<typeof createGoogleGenerativeAI>) {
+async function handleStandardChat(user: User, projectId: string, gritLevel: number, coreMessages: Message[], supabase: SupabaseClient) {
+  const { createOpenAI } = await import('@ai-sdk/openai');
+  const myOpenAI = createOpenAI({ apiKey: process.env.OPENAI_API_KEY });
   const fullName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Visionæren';
   const allProjects = await getAccessibleProjects(supabase, user.id, user.email);
   const recentProjects = allProjects.slice(0, 3);
@@ -292,7 +295,7 @@ async function handleStandardChat(user: User, projectId: string, gritLevel: numb
   }
 
   // Vi placerer DROGON_SYSTEM_PROMPT EFTER vaultMemory, så ordrerne står friskest i modellens hukommelse (undgår "lost in the middle").
-  const contextualPrompt = `[Brugernavn: ${fullName}. Grit Level: ${gritLevel}/5]\n\n[PROJEKT & VAULT DATA]\n` + projectMemory + vaultMemory + `\n\n[SYSTEM INSTRUCTIONS]\n` + DROGON_SYSTEM_PROMPT;
+  const contextualPrompt = `[Grit Level: ${gritLevel}/5]\n\n[PROJEKT & VAULT DATA]\n` + projectMemory + vaultMemory + `\n\n[SYSTEM INSTRUCTIONS]\n` + DROGON_SYSTEM_PROMPT;
 
   // Vi bevarer den fulde historik, så Drogon ikke glemmer tidligere svar (Amnesia-fejlen).
   // Gemini 2.5 Flash har en enorm kontekstvindue, og vores antiSummaryPill forhindrer den i at gentage det.
@@ -310,7 +313,7 @@ async function handleStandardChat(user: User, projectId: string, gritLevel: numb
   let result;
   try {
     result = await streamText({
-      model: myGoogle('gemini-2.5-flash'),
+      model: myOpenAI('gpt-4o'),
       system: contextualPrompt,
       messages: chatHistory,
       temperature: 0.8,
@@ -323,15 +326,12 @@ async function handleStandardChat(user: User, projectId: string, gritLevel: numb
          });
       }
     });
-  } catch (geminiError: unknown) {
-    logError('Gemini API failed, falling back to OpenAI', geminiError);
-    // FALLBACK TO OPENAI GPT-4o-mini
-    const { createOpenAI } = await import('@ai-sdk/openai');
-    const myOpenAI = createOpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    
+  } catch (error: unknown) {
+    logError('OpenAI API failed', error);
+    // FALLBACK TO GPT-4o-mini
     result = await streamText({
       model: myOpenAI('gpt-4o-mini'),
-      system: contextualPrompt + '\n\n[SYSTEM NOTE: Du kører lige nu som FALLBACK-model (GPT-4o-mini) fordi det primære system er nede. Hold stadig Drogon-personaen.]',
+      system: contextualPrompt + '\n\n[SYSTEM NOTE: Du kører lige nu som FALLBACK-model (GPT-4o-mini).]',
       messages: chatHistory,
       temperature: 0.8,
       onFinish: async ({ text }) => {
