@@ -276,14 +276,17 @@ async function handleStandardChat(user: any, projectId: string, gritLevel: numbe
   // Vi placerer DROGON_SYSTEM_PROMPT EFTER vaultMemory, så ordrerne står friskest i modellens hukommelse (undgår "lost in the middle").
   const contextualPrompt = `[Brugernavn: ${fullName}. Grit Level: ${gritLevel}/5]\n\n[PROJEKT & VAULT DATA]\n` + projectMemory + vaultMemory + `\n\n[SYSTEM INSTRUCTIONS]\n` + DROGON_SYSTEM_PROMPT;
 
-  // Vi bruger hele chat-historikken (coreMessages) for at sikre fuld kontekst,
-  // så modellen ikke glemmer hvad vi snakker om, især på den blanke canvas.
+  // Vi trimmer historikken for at forhindre, at LLM'en begynder at gentage sig selv og opsummere i loops.
+  // Vi beholder den ALLERFØRSTE besked (for at bevare den oprindelige ide) plus de 5 seneste beskeder.
   let chatHistory = coreMessages;
+  if (chatHistory.length > 6) {
+    chatHistory = [chatHistory[0], ...chatHistory.slice(-5)];
+  }
 
   // IRONCLAD RECENCY INJECTION: Tvinger LLM'en til at adlyde lige før den genererer
   const lastMsgIndex = chatHistory.length - 1;
   if (lastMsgIndex >= 0 && chatHistory[lastMsgIndex].role === 'user') {
-    const antiSummaryPill = `\n\n[SYSTEM INSTRUCTION: DO NOT summarize my points. DO NOT use lists or bullet points. DO NOT repeat my idea back to me. Just give me your direct, conversational response in plain text paragraphs.]`;
+    const antiSummaryPill = `\n\n[SYSTEM INSTRUCTION - BANNED BEHAVIOR: Du MÅ IKKE opsummere, hvad jeg lige har sagt. Du MÅ IKKE gentage mine pointer. Gå DIREKTE til dit eget modspil. Skriv i flydende prosa. INGEN lister.]`;
     if (typeof chatHistory[lastMsgIndex].content === 'string') {
       chatHistory[lastMsgIndex].content += antiSummaryPill;
     }
