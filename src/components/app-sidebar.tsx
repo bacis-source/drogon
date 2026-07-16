@@ -13,7 +13,7 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar"
 import { Compass, FileText, LayoutTemplate, LogOut, MessageSquare, Plus, CheckSquare, Trophy, Cloud, Check, Users, Briefcase } from "lucide-react"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { clearUnassignedChat } from "@/app/actions/chat"
 
 interface Project {
@@ -24,6 +24,9 @@ interface Project {
 export function AppSidebar({ userEmail = "MASTER ARCHITECT", userInitial = "M", signoutAction, projects = [] }: { userEmail?: string, userInitial?: string, signoutAction?: () => void, projects?: Project[] }) {
   const pathname = usePathname()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const projectId = searchParams.get('project')
+  
   if (pathname === '/login') return null;
   return (
     <Sidebar className="border-r border-slate-800/80 bg-[#0A0F1E] w-[280px] print:hidden">
@@ -76,17 +79,19 @@ export function AppSidebar({ userEmail = "MASTER ARCHITECT", userInitial = "M", 
                   <div className="px-3 py-4 text-center border border-dashed border-slate-800 rounded-xl">
                      <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">INGEN VISIONER ENDNU</span>
                   </div>
-              ) : projects.map((p, index) => (
-                  <div key={p.id} onClick={() => { window.location.href = `/?project=${p.id}`; }} className={`w-full bg-[#111626] border ${index === 0 ? 'border-[#F59E0B]/50 shadow-[0_0_15px_rgba(245,158,11,0.05)]' : 'border-slate-800/80 hover:border-slate-700'} rounded-xl p-3 flex justify-between items-center cursor-pointer transition-colors`}>
+              ) : projects.map((p, index) => {
+                  const isActive = p.id.toString() === projectId;
+                  return (
+                  <div key={p.id} onClick={() => { window.location.href = `/?project=${p.id}`; }} className={`w-full bg-[#111626] border ${isActive ? 'border-[#F59E0B]/50 shadow-[0_0_15px_rgba(245,158,11,0.05)]' : 'border-slate-800/80 hover:border-slate-700'} rounded-xl p-3 flex justify-between items-center cursor-pointer transition-colors`}>
                     <div className="flex flex-col max-w-[85%]">
-                      <span className={`text-xs font-bold tracking-wider ${index === 0 ? 'text-[#F59E0B]' : 'text-slate-300'} leading-none mb-1 uppercase truncate`} title={p.name}>
+                      <span className={`text-xs font-bold tracking-wider ${isActive ? 'text-[#F59E0B]' : 'text-slate-300'} leading-none mb-1 uppercase truncate`} title={p.name}>
                         {p.name}
                       </span>
                       <span className="text-[9px] font-semibold text-slate-500 tracking-widest">LVL 1</span>
                     </div>
-                    <span className={index === 0 ? "text-[#F59E0B]" : "text-slate-600"}>›</span>
+                    <span className={isActive ? "text-[#F59E0B]" : "text-slate-600"}>›</span>
                   </div>
-              ))}
+              )})}
             </div>
 
             {/* Main Menu */}

@@ -276,12 +276,9 @@ async function handleStandardChat(user: any, projectId: string, gritLevel: numbe
   // Vi placerer DROGON_SYSTEM_PROMPT EFTER vaultMemory, så ordrerne står friskest i modellens hukommelse (undgår "lost in the middle").
   const contextualPrompt = `[Brugernavn: ${fullName}. Grit Level: ${gritLevel}/5]\n\n[PROJEKT & VAULT DATA]\n` + projectMemory + vaultMemory + `\n\n[SYSTEM INSTRUCTIONS]\n` + DROGON_SYSTEM_PROMPT;
 
-  // Trim historikken. Hvis den er for lang, sidder LLM'en fast i at kopiere sine egne gamle, dårlige vaner.
-  // Vi beholder kun de seneste 4 beskeder + den aktuelle for at holde det ultra-skarpt.
+  // Vi bruger hele chat-historikken (coreMessages) for at sikre fuld kontekst,
+  // så modellen ikke glemmer hvad vi snakker om, især på den blanke canvas.
   let chatHistory = coreMessages;
-  if (chatHistory.length > 5) {
-    chatHistory = chatHistory.slice(-5);
-  }
 
   // IRONCLAD RECENCY INJECTION: Tvinger LLM'en til at adlyde lige før den genererer
   const lastMsgIndex = chatHistory.length - 1;
